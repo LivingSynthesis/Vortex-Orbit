@@ -30,9 +30,9 @@ int menu = 0;
 int m = 0;
 int stage = 0;
 int frame = 0;
-int colorNum, qBand;;
+int qBand;;
 int ran1, ran2, ran3, ran4;
-int patNum, totalPatterns = 6 ;
+int patNum, totalPatterns = 7 ;
 int targetSlot, currentSlot, targetZone, colorZone;
 int targetHue, selectedHue, targetSat, selectedSat, targetVal, selectedVal;
 int buttonState, buttonState2, lastButtonState, lastButtonState2 = 0;
@@ -75,16 +75,17 @@ int hue, sat, val;
 
 void patterns(int pat) {
   int totalColors = mode[m].numColors;
+  int currentColor = mode[m].currentColor;
   if (pat == 0) {
     // All Ribbon
     if (mainClock - prevTime > 10) {
-      if (colorNum >= totalColors)colorNum = 0;
-      if (colorNum < totalColors) {
-        hue = mode[m].hue[colorNum];
-        sat = mode[m].sat[colorNum];
-        val = mode[m].val[colorNum];
-        colorNum++;
+      if (currentColor >= totalColors)mode[m].currentColor = 0;
+      if (currentColor < totalColors) {
+        hue = mode[m].hue[currentColor];
+        sat = mode[m].sat[currentColor];
+        val = mode[m].val[currentColor];
         for (int a = 0; a < 28; a++) leds[a].setHSV(hue, sat, val);
+        mode[m].currentColor++;
       }
       prevTime = mainClock;
     }
@@ -96,17 +97,15 @@ void patterns(int pat) {
     val = mode[m].val[0];
     for (int a = 0; a < 28; a++) leds[a].setHSV(hue, sat, val);
     if (on) {
-      if (colorNum >= totalColors)colorNum = 1;
-      hue = mode[m].hue[colorNum];
-      sat = mode[m].sat[colorNum];
-      val = mode[m].val[colorNum];
+      hue = mode[m].hue[currentColor];
+      sat = mode[m].sat[currentColor];
+      val = mode[m].val[currentColor];
       for (int a = 0; a < 28; a++) leds[a].setHSV(hue, sat, val);
     }
-
     if (mainClock - prevTime > dot) {
-      if (on) dot = 15;
       if (!on) dot = 2;
-      colorNum++;
+      if (on) dot = 15, mode[m].currentColor++;
+      if (currentColor >= totalColors)mode[m].currentColor = 1;
       on = !on;
       prevTime = mainClock;
     }
@@ -117,36 +116,35 @@ void patterns(int pat) {
     val = mode[m].val[0];
     for (int a = 0; a < 28; a++) leds[a].setHSV(hue, sat, val);
     if (on) {
-      if (colorNum >= totalColors)colorNum = 1;
-      hue = mode[m].hue[colorNum];
-      sat = mode[m].sat[colorNum];
-      val = mode[m].val[colorNum];
+      hue = mode[m].hue[currentColor];
+      sat = mode[m].sat[currentColor];
+      val = mode[m].val[currentColor];
       leds[ran1].setHSV(hue, sat, val);
       leds[ran2].setHSV(hue, sat, val);
       leds[ran3].setHSV(hue, sat, val);
       leds[ran4].setHSV(hue, sat, val);
     }
-
     if (mainClock - prevTime > dot) {
-      if (on) dot = 1;
-      if (!on) dot = 1;
-      colorNum++;
-      ran1 = random(0, 7);
-      ran2 = random(7, 15);
-      ran3 = random(15, 22);
-      ran4 = random(22, 28);
+      if (!on) dot = 2;
+      if (on) {
+        ran1 = random(0, 7);
+        ran2 = random(7, 15);
+        ran3 = random(15, 22);
+        ran4 = random(22, 28);
+        dot = 1, mode[m].currentColor++;
+      }
+      if (currentColor >= totalColors)mode[m].currentColor = 1;
       on = !on;
       prevTime = mainClock;
     }
   }
   if (pat == 3) {
+    if (currentColor >= totalColors)mode[m].currentColor = 0;
+    hue = mode[m].hue[currentColor];
+    sat = mode[m].sat[currentColor];
+    val = mode[m].val[currentColor];
     if (mainClock - prevTime > 60) {
-      if (colorNum >= totalColors)colorNum = 0;
-      hue = mode[m].hue[colorNum];
-      sat = mode[m].sat[colorNum];
-      val = mode[m].val[colorNum];
       clearAll();
-      colorNum++;
       for (int side = 0; side < 4; side++) {
         if (frame >= 0 && frame <= 3) {
           leds[3 + (7 * side) + frame].setHSV(hue, sat, val);
@@ -157,46 +155,71 @@ void patterns(int pat) {
           leds[3 + (7 * side) - (6 - frame)].setHSV(hue, sat, val);
         }
       }
+      mode[m].currentColor++;
       frame++;
       if (frame > 6) frame = 0;
       prevTime = mainClock;
     }
   }
   if (pat == 4) {
+    if (currentColor >= totalColors)mode[m].currentColor = 0;
+    hue = mode[m].hue[currentColor];
+    sat = mode[m].sat[currentColor];
+    val = mode[m].val[currentColor];
     if (mainClock - prevTime > 75) {
-      if (colorNum >= totalColors)colorNum = 0;
-      hue = mode[m].hue[colorNum];
-      sat = mode[m].sat[colorNum];
-      val = mode[m].val[colorNum];
       clearAll();
-      colorNum++;
       for (int side = 0; side < 4; side++) {
         leds[3 + (7 * side) + frame].setHSV(hue, sat, val);
         leds[3 + (7 * side) - frame].setHSV(hue, sat, val);
       }
       frame++;
       if (frame > 3) frame = 0;
+      mode[m].currentColor++;
       prevTime = mainClock;
     }
   }
   if (pat == 5) {
+    if (currentColor >= totalColors)mode[m].currentColor = 0;
+    hue = mode[m].hue[currentColor];
+    sat = mode[m].sat[currentColor];
+    val = mode[m].val[currentColor];
     if (mainClock - prevTime > 50) {
-      if (colorNum >= totalColors)colorNum = 0;
-      hue = mode[m].hue[colorNum];
-      sat = mode[m].sat[colorNum];
-      val = mode[m].val[colorNum];
       clearAll();
-      colorNum++;
       qBand++;
       if (qBand > 7) qBand = 0;
       leds[qBand].setHSV(hue, sat, val);
       leds[qBand + 6].setHSV(hue, sat, val);
       leds[qBand + 13].setHSV(hue, sat, val);
       leds[qBand + 20].setHSV(hue, sat, val);
+      mode[m].currentColor++;
       prevTime = mainClock;
     }
   }
   if (pat == 6) {
+    if (currentColor >= totalColors)mode[m].currentColor = 0;
+    hue = mode[m].hue[currentColor];
+    sat = mode[m].sat[currentColor];
+    val = mode[m].val[currentColor];
+    if (mainClock - prevTime > 100) {
+      clearAll();
+      if (on) {
+        for (int s = 0; s < 7; s++) {
+          leds[s].setHSV(hue, sat, val);
+          leds[s + 14].setHSV(hue, sat, val);
+        }
+      }
+      if (!on) {
+        for (int s = 0; s < 7; s++) {
+          leds[s + 7].setHSV(hue, sat, val);
+          leds[s + 21].setHSV(hue, sat, val);
+        }
+      }
+      mode[m].currentColor++;
+      on = !on;
+      prevTime = mainClock;
+    }
+  }
+  if (pat == 7) {
     //half and half sides
   }
 }
@@ -222,12 +245,12 @@ void openColors() {
     clearAll();
     for (int side = 0; side < 4; side++) {
       if (frame >= 0 && frame <= 3) {
-        leds[3 + (7 * side) + frame].setHSV(0, 0, 255);
-        leds[3 + (7 * side) - frame].setHSV(0, 0, 255);
+        leds[3 + (7 * side) + frame].setHSV(0, 0, 170);
+        leds[3 + (7 * side) - frame].setHSV(0, 0, 170);
       }
       if (frame >= 4 && frame <= 6) {
-        leds[3 + (7 * side) + (6 - frame)].setHSV(0, 0, 255);
-        leds[3 + (7 * side) - (6 - frame)].setHSV(0, 0, 255);
+        leds[3 + (7 * side) + (6 - frame)].setHSV(0, 0, 170);
+        leds[3 + (7 * side) - (6 - frame)].setHSV(0, 0, 170);
       }
     }
     frame++;
@@ -238,7 +261,7 @@ void openColors() {
 
 void colorSet() {
   if (stage == 0) {
-    int setSize = mode[m].getSize();
+    int setSize = mode[m].numColors;
     clearAll();
     for (int colorSlot = 0; colorSlot < 8; colorSlot++) {
       int side = colorSlot / 2;
@@ -317,7 +340,7 @@ void colorWheel(int layer) {
   if (layer == 3) {
     for (int bright = 0; bright < 4; bright ++) {
       val = 255 - (85 * bright);
-      if (bright == 2) val = 110;
+      if (bright == 2) val = 120;
       for (int band = 0; band < 7; band++)leds[band + (7 * bright)].setHSV(selectedHue, selectedSat, val);
     }
   }
@@ -398,7 +421,7 @@ void checkButton() {
           if (b == 0) {
             if (menu == 2) {
               if (stage == 0) {
-                int setSize = mode[m].getSize();
+                int setSize = mode[m].numColors;
                 if (targetSlot < setSize)stage = 1, currentSlot = targetSlot; //confirm selection
                 if (targetSlot == setSize)targetSlot--, mode[m].deleteColor();
                 if (targetSlot > setSize)stage = 1, currentSlot = setSize;
@@ -408,7 +431,7 @@ void checkButton() {
               else if (stage == 3) stage = 4, selectedSat = 255 - (85 * targetSat);
               else if (stage == 4) {
                 selectedVal = 255 - (85 * targetVal);
-                if (targetVal == 2) selectedVal = 110;
+                if (targetVal == 2) selectedVal = 120;
                 mode[m].saveColor(currentSlot, selectedHue, selectedSat, selectedVal);
                 stage = 0;
               }
@@ -434,8 +457,8 @@ void checkButton() {
     //these are the max and minimum values for each variable.
     if (patNum > totalPatterns - 1) patNum = 0;
     if (patNum < 0) patNum = totalPatterns - 1;
-    int lastSlot = mode[m].getSize() + 1;
-    if (mode[m].getSize() == 8) lastSlot = mode[m].getSize();
+    int lastSlot = mode[m].numColors + 1;
+    if (mode[m].numColors == 8) lastSlot = mode[m].numColors;
     if (targetSlot > lastSlot) targetSlot = 0;
     if (targetSlot < 0) targetSlot = lastSlot;
     if (targetZone > 3) targetZone = 0;

@@ -14,14 +14,11 @@ class Modes {
     int val[8] = {110, 170, 170, 170, 170, 170, 170, 170};
     int currentColor = 0;
     int numColors = 8;
-    int patternNum = 1;
+    int patternNum = 3;
     Modes();
     int menuNum;
     int getPattern();
     int getSize();
-    int getHue(int num);
-    int getSat(int num);
-    int getVal(int num);
     void savePattern(int num);
     void saveColor(int slot, int sHue, int sSat, int sVal);
     void addColor();
