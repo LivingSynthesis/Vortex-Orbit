@@ -2,13 +2,14 @@
 
 Modes::Modes() {
   bool endOfSet;
-  int hue[8] = {0, 32, 64, 96, 128, 160, 192, 224};
-  int sat[8] = {255, 255, 255, 255, 255, 255, 255, 255};
-  int val[8] = {120, 170, 170, 170, 170, 170, 170, 170};
+  int hue[8];
+  int sat[8];
+  int val[8];
   int currentColor;
   int nextColor;
   int numColors;
   int patternNum;
+  int menuNum;
 }
 
 void Modes::saveColor(int slot, int thisHue, int thisSat, int thisVal) {
