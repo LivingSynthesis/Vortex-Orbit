@@ -33,7 +33,7 @@ int frame = 0;
 int qBand;
 int gap, rep;
 int ran1, ran2, ran3, ran4;
-int patNum, totalPatterns = 9 ;
+int patNum, totalPatterns = 10 ;
 int targetSlot, currentSlot, targetZone, colorZone;
 int targetHue, selectedHue, targetSat, selectedSat, targetVal, selectedVal;
 int buttonState, buttonState2, lastButtonState, lastButtonState2 = 0;
@@ -63,6 +63,7 @@ void loop() {
   if (menu == 2) colorSet();
   if (menu == 3) openPatterns();
   if (menu == 4) patternSelect();
+  if (menu == 5) confirm();
   checkButton();
   FastLED.show();
 
@@ -101,7 +102,7 @@ void patterns(int pat) {
     }
     if (!on) duration = 15;
     if (mainClock - prevTime > duration) {
-      nextColor(1);
+      if (!on)nextColor(1);
       on = !on;
       prevTime = mainClock;
     }
@@ -117,15 +118,12 @@ void patterns(int pat) {
       setLed(ran3);
       setLed(ran4);
     }
-    if (mainClock - prevTime > 1) {
-      ran1 = random(0, 7);
-      ran2 = random(7, 14);
-      ran3 = random(14, 21);
-      ran4 = random(21, 28);
-      if (!on)nextColor (1);
-      on = !on;
-      prevTime = mainClock;
-    }
+    ran1 = random(0, 7);
+    ran2 = random(7, 14);
+    ran3 = random(14, 21);
+    ran4 = random(21, 28);
+    if (!on)nextColor (1);
+    on = !on;
   }
   if (pat == 3) { // Vortex
     getColor(currentColor);
@@ -163,7 +161,7 @@ void patterns(int pat) {
   }
   if (pat == 5) {
     getColor(currentColor);
-    if (mainClock - prevTime > 10) {
+    if (mainClock - prevTime > 100) {
       clearAll();
       for (int s = 0; s < 7; s++) {
         if (on) {
@@ -174,28 +172,33 @@ void patterns(int pat) {
           setLed(s + 7);
           setLed(s + 21);
         }
+        nextColor (0);
       }
-      nextColor (0);
+
       on = !on;
       prevTime = mainClock;
     }
   }
-  if (pat == 6) {
+  if (pat == 6) { //Impact
+    if (mainClock - prevTime > 75) on = !on, prevTime = mainClock;
     getColor(0);
-    setLeds(0, 2);
-    setLeds(11, 17);
-    setLeds(25, 27);
+    if (on) {
+      clearAll();
+      setLeds(0, 2);
+      setLeds(11, 17);
+      setLeds(25, 27);
+    }
     getColor(1);
     if (totalColors == 1) val = 0;
-    setLeds(4, 9);
-    setLeds(18, 23);
+    if (!on) {
+      clearAll();
+      setLeds(4, 9);
+      setLeds(18, 23);
+    }
     getColor(currentColor);
     if (totalColors <= 2) val = 0;
     setLed(3), setLed(10), setLed(17), setLed(24);
-    if (mainClock - prevTime > 10) {
-      nextColor(2);
-      prevTime = mainClock;
-    }
+    nextColor(2);
   }
   if (pat == 7) {
     getColor(currentColor);
@@ -204,7 +207,7 @@ void patterns(int pat) {
     if (color1 > color2 && color1 - color2 < (255 - color1) + color2)gap--;
     if (color1 > color2 && color1 - color2 > (255 - color1) + color2)gap++;
     if (color1 < color2 && color2 - color1 < (255 - color2) + color1)gap++;
-    if (color1 < color2 && color2 - color1 > (255 - color2) + color1)Serial.println("now"), gap--;
+    if (color1 < color2 && color2 - color1 > (255 - color2) + color1)gap--;
     if (color1 + gap >= 255) gap -= 255;
     if (color1 + gap < 0) gap += 255;
     int finalHue = color1 + gap;
@@ -216,14 +219,20 @@ void patterns(int pat) {
     setLeds(0, 27);
     nextColor(0);
   }
+
+  if (pat == 9) {
+    if (!on) clearAll(); if (mainClock - prevTime > 10) on = !on, prevTime = mainClock;
+    if (on) {
+      getColor(currentColor);
+      setLeds(0, 27);
+      if (currentColor == totalColors - 1) on = !on;
+      nextColor(0);
+    }
+  }
+
   // color fade
   // stretch
   // centerpoint
-}
-
-int fade(int color1, int color2) {
-  if (color1 > color2)return color1 - color2 / 4;
-  if (color2 > color1)return color2 - color1 / 4;
 }
 
 //-----------------------------------------------------
@@ -400,6 +409,18 @@ void patternSelect() {
   patterns(patNum);
 }
 
+void confirm() {
+  mainClock = millis();
+  if (mainClock - prevTime > 50) {
+    if (frame == 0) clearAll();
+    if (frame == 1) sat = 0, setLeds(0, 27);
+    if (frame == 2) clearAll();
+    if (frame == 3) frame = 0, mode[m].menuNum = 0;
+    frame++;
+    prevTime = mainClock;
+  }
+}
+
 void checkButton() {
   for (int b = 0; b < 2; b++) {
     button[b].buttonState = digitalRead(button[b].pinNum);
@@ -421,7 +442,7 @@ void checkButton() {
       if (button[b].buttonState == HIGH && button[b].lastButtonState == LOW && millis() - button[b].prevPressTime > 200) {
         if (button[b].holdTime < 300) {
           if (b == 0) {
-            if (menu == 0)m++, frame = 0, mode[m].currentColor = 0;
+            if (menu == 0)m++, frame = 0, gap = 0, mode[m].currentColor = 0;
             if (menu == 2) {
               if (stage == 0) targetSlot++; //next option
               if (stage == 1) targetZone++;
@@ -463,7 +484,9 @@ void checkButton() {
                 stage = 0;
               }
             }
-            if (menu == 4)mode[m].patternNum = patNum, saveAll(), mode[m].menuNum = 0;//confirm selection
+            if (menu == 4) {
+              mode[m].patternNum = patNum, saveAll(), mode[m].menuNum = 5;//confirm selection
+            }
           }
           if (b == 1) {
             if (menu == 2) {
@@ -473,7 +496,7 @@ void checkButton() {
               if (stage == 3)stage = 2;
               if (stage == 4)stage = 3;
             }
-            if (menu == 4)mode[m].menuNum = 0;//cancle exit
+            if (menu == 4)mode[m].menuNum = 5;//cancle exit
           }
         }
         if (button[b].holdTime < 3000 && menu == 1)mode[m].menuNum = 0;
@@ -533,29 +556,29 @@ void saveAll() {
   saveData.write(myOrbit);
 }
 void setDefaults() {
-  mode[0].patternNum = 00;
+  mode[0].patternNum = 8;
   mode[0].numColors = 8;
   for (int c = 0; c < mode[0].numColors; c++) {
     mode[0].hue[c] = c * 32;
     mode[0].sat[c] = 255;
     mode[0].val[c] = 170;
   }
-  
-  mode[1].patternNum = 1;
+
+  mode[1].patternNum = 6;
   mode[1].numColors = 3;
-  mode[1].hue[0] = 224;
+  mode[1].hue[0] = 0;
   mode[1].sat[0] = 255;
-  mode[1].val[0] = 120;
-  mode[1].hue[1] = 192;
+  mode[1].val[0] = 170;
+  mode[1].hue[1] = 160;
   mode[1].sat[1] = 255;
   mode[1].val[1] = 170;
-  mode[1].hue[2] = 128;
+  mode[1].hue[2] = 224;
   mode[1].sat[2] = 255;
-  mode[1].val[2] = 170;
+  mode[1].val[2] = 120;
 
 
   mode[2].patternNum = 2;
-  mode[2].numColors = 3;
+  mode[2].numColors = 5;
   mode[2].hue[0] = 0;
   mode[2].sat[0] = 0;
   mode[2].val[0] = 0;
@@ -565,22 +588,26 @@ void setDefaults() {
   mode[2].hue[2] = 64;
   mode[2].sat[2] = 170;
   mode[2].val[2] = 120;
+  mode[2].hue[2] = 64;
+  mode[2].sat[2] = 255;
+  mode[2].val[2] = 120;
+  mode[2].hue[3] = 160;
+  mode[2].sat[3] = 255;
+  mode[2].val[3] = 120;
+
 
 
   mode[3].patternNum = 3;
-  mode[3].numColors = 3;
-  mode[3].hue[0] = 0;
+  mode[3].numColors = 2;
+  mode[3].hue[0] = 224;
   mode[3].sat[0] = 255;
-  mode[3].val[0] = 120;
-  mode[3].hue[1] = 0;
+  mode[3].val[0] = 170;
+  mode[3].hue[1] = 192;
   mode[3].sat[1] = 255;
   mode[3].val[1] = 170;
-  mode[3].hue[2] = 0;
-  mode[3].sat[2] = 255;
-  mode[3].val[2] = 255;
 
 
-  mode[4].patternNum = 4;
+  mode[4].patternNum = 9;
   mode[4].numColors = 3;
   mode[4].hue[0] = 0;
   mode[4].sat[0] = 255;
@@ -594,16 +621,21 @@ void setDefaults() {
 
 
   mode[5].patternNum = 5;
-  mode[5].numColors = 2;
-  mode[5].hue[0] = 224;
+  mode[5].numColors = 4;
+  mode[5].hue[0] = 0;
   mode[5].sat[0] = 255;
-  mode[5].val[0] = 170;
-  mode[5].hue[1] = 192;
+  mode[5].val[0] = 120;
+  mode[5].hue[1] = 160;
   mode[5].sat[1] = 255;
   mode[5].val[1] = 170;
+  mode[5].hue[2] = 64;
+  mode[5].sat[2] = 255;
+  mode[5].val[2] = 170;
+  mode[5].hue[3] = 96;
+  mode[5].sat[3] = 255;
+  mode[5].val[3] = 170;
 
-
-  mode[6].patternNum = 6;
+  mode[6].patternNum = 7;
   mode[6].numColors = 3;
   mode[6].hue[0] = 0;
   mode[6].sat[0] = 255;
