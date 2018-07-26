@@ -9,6 +9,7 @@
 #define CLOCK_PIN 3
 
 #define totalModes 7
+#define totalPatterns 11
 //---------------------------------------------------------
 
 CRGB leds[NUM_LEDS];
@@ -31,9 +32,9 @@ int menu;
 int stage = 0;
 int frame = 0;
 int qBand;
-int gap, rep;
+int gap;
 int ran1, ran2, ran3, ran4;
-int patNum, totalPatterns = 10 ;
+int patNum;
 int targetSlot, currentSlot, targetZone, colorZone;
 int targetHue, selectedHue, targetSat, selectedSat, targetVal, selectedVal;
 int buttonState, buttonState2, lastButtonState, lastButtonState2 = 0;
@@ -42,6 +43,7 @@ unsigned long mainClock, prevTime, duration, dimmer;
 
 const byte numChars = 128;
 char receivedChars[numChars];
+char tempChars[numChars];
 
 boolean newData = false;
 
@@ -237,8 +239,24 @@ void patterns(int pat) {
       nextColor(0);
     }
   }
+  if (pat == 10) { //SparkleTrace
+    for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(30);
+    if (on) {
+      getColor(currentColor);
+      if (totalColors == 1) val = 0;
+    }
+    setLed(ran1);
+    setLed(ran2);
+    setLed(ran3);
+    setLed(ran4);
+    ran1 = random(0, 7);
+    ran2 = random(7, 14);
+    ran3 = random(14, 21);
+    ran4 = random(21, 28);
+    if (!on)nextColor (0);
+    on = !on;
+  }
 
-  // color fade
   // stretch
   // centerpoint
 }
@@ -716,24 +734,69 @@ void recvWithStartEndMarkers() {
 }
 
 void importData() {
+  bool dataIsValid = false;
+  char * strtokIndx; // this is used by strtok() as an index
   if (newData == true) {
-    char * strtokIndx; // this is used by strtok() as an index
-    strtokIndx = strtok(receivedChars, ",");
-    int mNum = atoi(strtokIndx);
-    strtokIndx = strtok(NULL, ",");
-    mode[mNum].patternNum = atoi(strtokIndx);
-    strtokIndx = strtok(NULL, ",");
-    mode[mNum].numColors = atoi(strtokIndx);
-    for (int col = 0; col < 8; col++) {
-      strtokIndx = strtok(NULL, ",");
-      mode[mNum].hue[col] = atoi(strtokIndx);
-      strtokIndx = strtok(NULL, ",");
-      mode[mNum].sat[col] = atoi(strtokIndx);
-      strtokIndx = strtok(NULL, ",");
-      mode[mNum].val[col] = atoi(strtokIndx);      
-    }
-    Serial.println("Data recieved");
-    saveAll();
     newData = false;
+    if (!dataIsValid) {
+      strcpy(tempChars, receivedChars);
+      strtokIndx = strtok(tempChars, ",");
+      if (atoi(strtokIndx) >= totalModes) {
+        Serial.println("Invalid input. Mode number: too high");
+        return;
+      }
+      strtokIndx = strtok(NULL, ",");
+      if (atoi(strtokIndx) >= totalPatterns) {
+        Serial.println("Invalid input. Pattern number: too high");
+        return;
+      }
+      strtokIndx = strtok(NULL, ",");
+      if (atoi(strtokIndx) < 1) {
+        Serial.println("Invalid input. Number of colors: too low");
+        return;
+      }
+      if (atoi(strtokIndx) > 8) {
+        Serial.println("Invalid input. Number of colors: too high");
+        return;
+      }
+      for (int col = 0; col < 8; col++) {
+        strtokIndx = strtok(NULL, ",");
+        if (atoi(strtokIndx) > 255) {
+          Serial.println("Invalid input. Hue " + (String)col + ": too high");
+          return;
+        }
+        strtokIndx = strtok(NULL, ",");
+        if (atoi(strtokIndx) > 255) {
+          Serial.println("Invalid input. Saturation " + (String)col + ": too high");
+          return;
+        }
+        strtokIndx = strtok(NULL, ",");
+        if (atoi(strtokIndx) > 255) {
+          Serial.println("Invalid input. Brightness " + (String)col + ": too high");
+          return;
+        }
+      }
+      dataIsValid = true;
+    }
+    if (dataIsValid) {
+      strcpy(tempChars, receivedChars);
+      strtokIndx = strtok(tempChars, ",");
+      int mNum = atoi(strtokIndx);
+      strtokIndx = strtok(NULL, ",");
+      mode[mNum].patternNum = atoi(strtokIndx);
+      strtokIndx = strtok(NULL, ",");
+      mode[mNum].numColors = atoi(strtokIndx);
+      for (int col = 0; col < 8; col++) {
+        strtokIndx = strtok(NULL, ",");
+        mode[mNum].hue[col] = atoi(strtokIndx);
+        strtokIndx = strtok(NULL, ",");
+        mode[mNum].sat[col] = atoi(strtokIndx);
+        strtokIndx = strtok(NULL, ",");
+        mode[mNum].val[col] = atoi(strtokIndx);
+      }
+      Serial.println("Data recieved");
+      saveAll();
+      dataIsValid = false;
+    }
   }
 }
