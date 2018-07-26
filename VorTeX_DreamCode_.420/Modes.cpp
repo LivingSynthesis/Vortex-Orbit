@@ -10,6 +10,7 @@ Modes::Modes() {
   int numColors;
   int patternNum;
   int menuNum;
+
 }
 
 void Modes::saveColor(int slot, int thisHue, int thisSat, int thisVal) {

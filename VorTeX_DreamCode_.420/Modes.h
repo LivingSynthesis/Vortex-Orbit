@@ -17,7 +17,8 @@ class Modes {
     int nextColor;
     int numColors;
     int patternNum;
-    int menuNum;
+    int menuNum;  
+    
     void saveColor(int slot, int thisHue, int thisSat, int thisVal);
     void printMode(int num);
 };

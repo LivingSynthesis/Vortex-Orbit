@@ -40,10 +40,17 @@ int buttonState, buttonState2, lastButtonState, lastButtonState2 = 0;
 
 unsigned long mainClock, prevTime, duration, dimmer;
 
+const byte numChars = 128;
+char receivedChars[numChars];
+
+boolean newData = false;
+
+int dataNumber = 0;
+
 //--------------------------------------------------------
 
 void setup() {
-
+  Serial.begin(9600);
   FastLED.addLeds<DOTSTAR, DATA_PIN, CLOCK_PIN, BGR>(leds, NUM_LEDS);
   FastLED.setBrightness(30);
   button[0].createButton(0);
@@ -65,6 +72,7 @@ void loop() {
   if (menu == 4) patternSelect();
   if (menu == 5) confirm();
   checkButton();
+  checkSerial();
   FastLED.show();
 
 }
@@ -499,6 +507,7 @@ void checkButton() {
             if (menu == 4)mode[m].menuNum = 5;//cancle exit
           }
         }
+        if (button[b].holdTime > 600 && Serial) exportSettings();
         if (button[b].holdTime < 3000 && menu == 1)mode[m].menuNum = 0;
         if (button[b].holdTime < 3000 && menu == 3)mode[m].menuNum = 0;
         button[b].prevPressTime = millis();
@@ -648,3 +657,83 @@ void setDefaults() {
   mode[6].val[2] = 170;
 }
 
+void exportSettings() {
+  Serial.println("Each line below contains 1 mode, copy and paste them to the line above to upload it!");
+  for (int mo = 0; mo < totalModes; mo++) {
+    Serial.print("<");
+    Serial.print(mo);
+    Serial.print(", ");
+    Serial.print(mode[mo].patternNum);
+    Serial.print(", ");
+    Serial.print(mode[mo].numColors);
+    Serial.print(", ");
+    for (int co = 0; co < 8; co++) {
+      Serial.print(mode[mo].hue[co]);
+      Serial.print(", ");
+      Serial.print(mode[mo].sat[co]);
+      Serial.print(", ");
+      Serial.print(mode[mo].val[co]);
+      if (co != 7) Serial.print(", ");
+    }
+    Serial.println(">");
+  }
+}
+
+void checkSerial() {
+  recvWithStartEndMarkers();
+  importData();
+}
+
+void recvWithStartEndMarkers() {
+  static boolean recvInProgress = false;
+  static byte ndx = 0;
+  char startMarker = '<';
+  char endMarker = '>';
+  char rc;
+
+  if (Serial.available() > 0 && newData == false) {
+    rc = Serial.read();
+    if (recvInProgress == true) {
+      if (rc != endMarker) {
+        receivedChars[ndx] = rc;
+        ndx++;
+        if (ndx >= numChars) {
+          ndx = numChars - 1;
+        }
+      }
+      else {
+        receivedChars[ndx] = '\0'; // terminate the string
+        recvInProgress = false;
+        ndx = 0;
+        newData = true;
+      }
+    }
+
+    else if (rc == startMarker) {
+      recvInProgress = true;
+    }
+  }
+}
+
+void importData() {
+  if (newData == true) {
+    char * strtokIndx; // this is used by strtok() as an index
+    strtokIndx = strtok(receivedChars, ",");
+    int mNum = atoi(strtokIndx);
+    strtokIndx = strtok(NULL, ",");
+    mode[mNum].patternNum = atoi(strtokIndx);
+    strtokIndx = strtok(NULL, ",");
+    mode[mNum].numColors = atoi(strtokIndx);
+    for (int col = 0; col < 8; col++) {
+      strtokIndx = strtok(NULL, ",");
+      mode[mNum].hue[col] = atoi(strtokIndx);
+      strtokIndx = strtok(NULL, ",");
+      mode[mNum].sat[col] = atoi(strtokIndx);
+      strtokIndx = strtok(NULL, ",");
+      mode[mNum].val[col] = atoi(strtokIndx);      
+    }
+    Serial.println("Data recieved");
+    saveAll();
+    newData = false;
+  }
+}
