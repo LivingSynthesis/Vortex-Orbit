@@ -241,20 +241,19 @@ void patterns(int pat) {
   }
   if (pat == 10) { //SparkleTrace
     for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(30);
-    if (on) {
+    if (mainClock - prevTime > 10) {
       getColor(currentColor);
-      if (totalColors == 1) val = 0;
+      ran1 = random(0, 7);
+      ran2 = random(7, 14);
+      ran3 = random(14, 21);
+      ran4 = random(21, 28);
+      setLed(ran1);
+      setLed(ran2);
+      setLed(ran3);
+      setLed(ran4);
+      nextColor (0);
+      prevTime = mainClock;
     }
-    setLed(ran1);
-    setLed(ran2);
-    setLed(ran3);
-    setLed(ran4);
-    ran1 = random(0, 7);
-    ran2 = random(7, 14);
-    ran3 = random(14, 21);
-    ran4 = random(21, 28);
-    if (!on)nextColor (0);
-    on = !on;
   }
 
   // stretch
@@ -583,6 +582,15 @@ void saveAll() {
   saveData.write(myOrbit);
 }
 void setDefaults() {
+  for (int tempMode = 0; tempMode < totalModes; tempMode++) {
+    mode[tempMode].patternNum = 0;
+    mode[tempMode].numColors = 1;
+    int tempColor = random(0, 255);
+    mode[tempMode].hue[0] = tempColor;
+    mode[tempMode].sat[0] = 255;
+    mode[tempMode].val[0] = 255;
+  }
+  
   mode[0].patternNum = 8;
   mode[0].numColors = 8;
   for (int c = 0; c < mode[0].numColors; c++) {
@@ -603,7 +611,6 @@ void setDefaults() {
   mode[1].sat[2] = 255;
   mode[1].val[2] = 120;
 
-
   mode[2].patternNum = 2;
   mode[2].numColors = 5;
   mode[2].hue[0] = 0;
@@ -622,8 +629,6 @@ void setDefaults() {
   mode[2].sat[3] = 255;
   mode[2].val[3] = 120;
 
-
-
   mode[3].patternNum = 3;
   mode[3].numColors = 2;
   mode[3].hue[0] = 224;
@@ -632,7 +637,6 @@ void setDefaults() {
   mode[3].hue[1] = 192;
   mode[3].sat[1] = 255;
   mode[3].val[1] = 170;
-
 
   mode[4].patternNum = 9;
   mode[4].numColors = 3;
@@ -645,7 +649,6 @@ void setDefaults() {
   mode[4].hue[2] = 160;
   mode[4].sat[2] = 255;
   mode[4].val[2] = 170;
-
 
   mode[5].patternNum = 5;
   mode[5].numColors = 4;
