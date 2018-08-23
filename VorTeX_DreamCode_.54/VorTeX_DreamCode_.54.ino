@@ -9,7 +9,7 @@
 #define CLOCK_PIN 3
 
 #define totalModes 7
-#define totalPatterns 11
+#define totalPatterns 14
 //---------------------------------------------------------
 
 CRGB leds[NUM_LEDS];
@@ -35,6 +35,7 @@ int qBand;
 int gap;
 int ran1, ran2, ran3, ran4;
 int patNum;
+int k = 0;
 int targetSlot, currentSlot, targetZone, colorZone;
 int targetHue, selectedHue, targetSat, selectedSat, targetVal, selectedVal;
 int buttonState, buttonState2, lastButtonState, lastButtonState2 = 0;
@@ -54,7 +55,7 @@ int dataNumber = 0;
 void setup() {
   Serial.begin(9600);
   FastLED.addLeds<DOTSTAR, DATA_PIN, CLOCK_PIN, BGR>(leds, NUM_LEDS);
-  FastLED.setBrightness(30);
+  FastLED.setBrightness(20);
   button[0].createButton(0);
   button[1].createButton(2);
   setDefaults();
@@ -229,17 +230,22 @@ void patterns(int pat) {
     setLeds(0, 27);
     nextColor(0);
   }
-
   if (pat == 9) {
-    if (!on) clearAll(); if (mainClock - prevTime > 10) on = !on, prevTime = mainClock;
     if (on) {
+      clearAll();
+      if (mainClock - prevTime > 10) {
+        on = !on;
+        prevTime = mainClock;
+      }
+    }
+    if (!on) {
       getColor(currentColor);
       setLeds(0, 27);
       if (currentColor == totalColors - 1) on = !on;
       nextColor(0);
     }
   }
-  if (pat == 10) { //SparkleTrace
+  if (pat == 10) {
     for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(30);
     if (mainClock - prevTime > 10) {
       getColor(currentColor);
@@ -255,7 +261,65 @@ void patterns(int pat) {
       prevTime = mainClock;
     }
   }
-
+  if (pat == 11) {
+    if (mainClock - prevTime > 300) {
+      for (int i = 0; i < NUM_LEDS; i++) {
+        if (i % 2 == 0) {
+          getColor(currentColor);
+          setLed(i);
+        }
+        if (i % 2 == 1) {
+          getColor(currentColor + 1);
+          if (currentColor + 1 == totalColors) {
+            getColor(0);
+          }
+          setLed(i);
+        }
+      }
+      nextColor(0);
+      prevTime = mainClock;
+    }
+  }
+  if (pat == 12) {
+    getColor(currentColor);
+    if (mainClock - prevTime > 60) {
+      for (int side = 0; side < 4; side++) {
+        if (frame <= 3) {
+          setLed(3 + (7 * side) + frame);
+          setLed(3 + (7 * side) - frame);
+        }
+        if (frame >= 4) {
+          setLed(3 + (7 * side) + (6 - frame));
+          setLed(3 + (7 * side) - (6 - frame));
+        }
+      }
+      frame++;
+      if (frame % 3 == 0) nextColor (0);
+      if (frame > 6) {
+        frame = 0;
+      }
+      prevTime = mainClock;
+    }
+  }
+  if (pat == 13) {
+    getColor(0);
+    setLeds(0, 27);
+    getColor(currentColor);
+    for (int i = 0; i < 5; i++) {
+      int chunk = i + k;
+      if (chunk > 27) chunk -= 28;
+      setLed(chunk);
+    }
+    if (mainClock - prevTime > 25) {
+      if (currentColor == totalColors - 1) k++;
+      prevTime = mainClock;
+      if (k > 27) k = 0;
+      nextColor(1);
+    }
+  }
+  if (pat == 14) {
+    
+  }
   // stretch
   // centerpoint
 }
@@ -521,7 +585,7 @@ void checkButton() {
               if (stage == 3)stage = 2;
               if (stage == 4)stage = 3;
             }
-            if (menu == 4)mode[m].menuNum = 5;//cancle exit
+            if (menu == 4)mode[m].menuNum = 5, frame = 0;//cancle exit
           }
         }
         if (button[b].holdTime > 600 && Serial) exportSettings();
@@ -590,7 +654,7 @@ void setDefaults() {
     mode[tempMode].sat[0] = 255;
     mode[tempMode].val[0] = 255;
   }
-  
+
   mode[0].patternNum = 8;
   mode[0].numColors = 8;
   for (int c = 0; c < mode[0].numColors; c++) {
