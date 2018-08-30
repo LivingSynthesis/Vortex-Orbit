@@ -8,8 +8,8 @@
 #define DATA_PIN 4
 #define CLOCK_PIN 3
 
-#define totalModes 7
-#define totalPatterns 14
+#define totalModes 15
+#define totalPatterns 15
 //---------------------------------------------------------
 
 CRGB leds[NUM_LEDS];
@@ -49,6 +49,7 @@ char tempChars[numChars];
 boolean newData = false;
 
 int dataNumber = 0;
+
 
 //--------------------------------------------------------
 
@@ -318,8 +319,21 @@ void patterns(int pat) {
     }
   }
   if (pat == 14) {
-    
-  }
+    if (on) {
+      getColor(currentColor);
+      setLeds(0, 27);
+      duration = 1;
+    }
+    if (!on) {
+      clearAll();
+      duration = 3;
+    }
+    if (mainClock - prevTime > duration) {
+      if (!on)nextColor(0);
+      on = !on;
+      prevTime = mainClock;
+    }
+  }  
   // stretch
   // centerpoint
 }
@@ -364,6 +378,16 @@ void blinkTarget(unsigned long blinkTime) {
 
 void clearAll() {
   for (int a = 0; a < 28; a++) leds[a].setHSV(0, 0, 0);
+}
+
+void rollRandom() {
+  mode[m].patternNum = random(0, totalPatterns);
+  mode[m].numColors = random(1, 8);
+  for (int r = 0; r < 8; r ++) {
+    mode[m].hue[r] = random(0, 255);
+    mode[m].sat[r] = random(0, 255);
+    mode[m].val[r] = random(110, 255);
+  }
 }
 
 void openColors() {
@@ -483,7 +507,7 @@ void openPatterns() {
   mainClock = millis();
   if (mainClock - prevTime > 100) {
     for (int a = 0; a < 28; a++) {
-      leds[a].setHSV(0, 0, 255);
+      leds[a].setHSV(0, 0, 110);
     }
     if (on) {
       clearAll();
@@ -524,7 +548,7 @@ void checkButton() {
           if (button[b].holdTime > 3000 && menu == 1) mode[m].menuNum = 2;
         }
         if (b == 1) {
-          if (button[b].holdTime > 2000 && button[b].holdTime < 3000 && menu == 0) mode[m].menuNum = 3;
+          if (button[b].holdTime > 2000 && button[b].holdTime < 3000 && menu == 0) mode[m].menuNum = 3, rollRandom(), saveAll();
           if (button[b].holdTime > 3000 && menu == 3) mode[m].menuNum = 4, mode[m].currentColor = 0;
         }
       }
