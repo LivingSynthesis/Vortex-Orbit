@@ -8,7 +8,7 @@
 #define DATA_PIN 4
 #define CLOCK_PIN 3
 
-#define totalModes 15
+#define totalModes 7
 #define totalPatterns 15
 //---------------------------------------------------------
 
