@@ -8,7 +8,7 @@
 #define DATA_PIN 4
 #define CLOCK_PIN 3
 
-#define totalModes 7
+#define totalModes 15
 #define totalPatterns 15
 //---------------------------------------------------------
 
@@ -333,7 +333,7 @@ void patterns(int pat) {
       on = !on;
       prevTime = mainClock;
     }
-  }  
+  }
   // stretch
   // centerpoint
 }
@@ -380,8 +380,10 @@ void clearAll() {
   for (int a = 0; a < 28; a++) leds[a].setHSV(0, 0, 0);
 }
 
-void rollRandom() {
+void rollPattern() {
   mode[m].patternNum = random(0, totalPatterns);
+}
+void rollColors() {
   mode[m].numColors = random(1, 8);
   for (int r = 0; r < 8; r ++) {
     mode[m].hue[r] = random(0, 255);
@@ -548,7 +550,7 @@ void checkButton() {
           if (button[b].holdTime > 3000 && menu == 1) mode[m].menuNum = 2;
         }
         if (b == 1) {
-          if (button[b].holdTime > 2000 && button[b].holdTime < 3000 && menu == 0) mode[m].menuNum = 3, rollRandom(), saveAll();
+          if (button[b].holdTime > 2000 && button[b].holdTime < 3000 && menu == 0) mode[m].menuNum = 3;
           if (button[b].holdTime > 3000 && menu == 3) mode[m].menuNum = 4, mode[m].currentColor = 0;
         }
       }
@@ -580,6 +582,7 @@ void checkButton() {
         if (button[b].holdTime > 400 && button[b].holdTime < 3000) {
           //medium press
           if (b == 0) {
+            if (menu == 0) rollColors(), saveAll();
             if (menu == 2) {
               if (stage == 0) {
                 int setSize = mode[m].numColors;
@@ -602,6 +605,7 @@ void checkButton() {
             }
           }
           if (b == 1) {
+            if (menu == 0) rollPattern(), saveAll();
             if (menu == 2) {
               if (stage == 0)mode[m].currentColor = 0, mode[m].nextColor = 1, saveAll(), mode[m].menuNum = 0;//cancle exit
               if (stage == 1)stage = 0;
