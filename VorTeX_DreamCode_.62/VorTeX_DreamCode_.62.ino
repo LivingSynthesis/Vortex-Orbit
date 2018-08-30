@@ -546,6 +546,9 @@ void checkButton() {
     if (button[b].holdTime > 50) {
       if (button[b].buttonState == LOW && button[b].holdTime > button[b].prevHoldTime) {
         if (b == 0) {
+          if (button[b].holdTime > 500 && button[b].holdTime < 800) {
+            for (int a = 0; a < 28; a++) leds[a].setHSV(0, 0, 110);
+          }
           if (button[b].holdTime > 2000 && button[b].holdTime < 3000 && menu == 0) mode[m].menuNum = 1;
           if (button[b].holdTime > 3000 && menu == 1) mode[m].menuNum = 2;
         }
@@ -582,7 +585,9 @@ void checkButton() {
         if (button[b].holdTime > 400 && button[b].holdTime < 3000) {
           //medium press
           if (b == 0) {
-            if (menu == 0) rollColors(), saveAll();
+            if (button[b].holdTime > 500 &&  button[b].holdTime < 1500) {
+              if (menu == 0) rollColors(), saveAll();
+            }
             if (menu == 2) {
               if (stage == 0) {
                 int setSize = mode[m].numColors;
