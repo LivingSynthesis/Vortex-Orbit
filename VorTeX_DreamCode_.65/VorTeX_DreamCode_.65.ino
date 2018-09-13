@@ -18,11 +18,11 @@ Buttons button[2];
 
 typedef struct Orbit {
   bool dataIsStored;
-  int sHue[totalModes][8];
-  int sSat[totalModes][8];
-  int sVal[totalModes][8];
-  int sNumColors[totalModes];
-  int sPatternNum[totalModes];
+  uint8_t sHue[totalModes][8];
+  uint8_t sSat[totalModes][8];
+  uint8_t sVal[totalModes][8];
+  uint8_t sNumColors[totalModes];
+  uint8_t sPatternNum[totalModes];
 };
 FlashStorage(saveData, Orbit);
 
@@ -74,7 +74,8 @@ void loop() {
   if (menu == 2) colorSet();
   if (menu == 3) openPatterns();
   if (menu == 4) patternSelect();
-  if (menu == 5) confirm();
+  if (menu == 5) confirmBlink();
+  if (menu == 6) randomizerRoll();
   checkButton();
   checkSerial();
   FastLED.show();
@@ -384,11 +385,100 @@ void rollPattern() {
   mode[m].patternNum = random(0, totalPatterns);
 }
 void rollColors() {
-  mode[m].numColors = random(1, 8);
-  for (int r = 0; r < 8; r ++) {
-    mode[m].hue[r] = random(0, 255);
-    mode[m].sat[r] = random(0, 255);
-    mode[m].val[r] = random(110, 255);
+  rollPattern();
+  int type = random(0,7);
+  //random, monochrome, complimentary, analogous, triadic, split complimentary, tetradic
+  if (type == 0) { //random
+    mode[m].numColors = random(1, 8);
+    for (int r = 0; r < 8; r ++) {
+      mode[m].hue[r] = random(0, 255);
+      mode[m].sat[r] = random(0, 255);
+      mode[m].val[r] = random(110, 255);
+    }
+  }
+  if (type == 1) { //monochrome
+    mode[m].numColors = 4;
+    int tempHue = random (0, 255);
+    for (int r = 0; r < 4; r++) {
+      mode[m].hue[r] = tempHue;
+      mode[m].sat[r] = r * 85;
+      mode[m].val[r] = 110;
+    }
+  }
+  if (type == 2) { //complimentary
+    mode[m].numColors = 2;
+    int tempHue = random (0, 255);
+    int compHue = tempHue + 128;
+    if (compHue >= 255) compHue -= 255;
+    mode[m].hue[0] = tempHue;
+    mode[m].hue[1] = compHue;
+    for (int r = 0; r < 2; r++) {
+      mode[m].sat[r] = 255;
+      mode[m].val[r] = random (110, 255);
+    }
+  }
+  if (type == 3) { // analogous
+    mode[m].numColors = 3;
+    int tempHue = random (0, 255);
+    int analHue1 = tempHue - 21;
+    if (analHue1 < 0) analHue1 += 255;
+    int analHue2 = tempHue + 21;
+    if (analHue2 > 255) analHue2 -= 255;
+    mode[m].hue[0] = tempHue;
+    mode[m].hue[1] = analHue1;
+    mode[m].hue[2] = analHue2;
+    for (int r = 0; r < 3; r++) {
+      mode[m].sat[r] = 255;
+      mode[m].val[r] = random (110, 255);
+    }
+  }
+  if (type == 4) { // triadic
+    mode[m].numColors = 3;
+    int tempHue = random (0, 255);
+    int triadHue1 = tempHue + 85;
+    int triadHue2 = tempHue - 85;
+    if (triadHue1 > 255) triadHue1 += 255;
+    if (triadHue2 < 0) triadHue2 += 255;
+    mode[m].hue[0] = tempHue;
+    mode[m].hue[1] = triadHue1;
+    mode[m].hue[2] = triadHue2;
+    for (int r = 0; r < 3; r++) {
+      mode[m].sat[r] = 255;
+      mode[m].val[r] = random (110, 255);
+    }
+  }
+  if (type == 5) { // split complimentary
+    mode[m].numColors = 3;
+    int tempHue = random (0, 255);
+    int splitCompHue1 = tempHue + 106;
+    int splitCompHue2 = tempHue - 106;
+    if (splitCompHue1 > 255) splitCompHue1 += 255;
+    if (splitCompHue2 < 0) splitCompHue2 += 255;
+    mode[m].hue[0] = tempHue;
+    mode[m].hue[1] = splitCompHue1;
+    mode[m].hue[2] = splitCompHue2;
+    for (int r = 0; r < 3; r++) {
+      mode[m].sat[r] = 255;
+      mode[m].val[r] = random (110, 255);
+    }
+  }
+  if (type == 6) { // tetradic
+    mode[m].numColors = 4;
+    int tempHue = random (0, 255);
+    int tetradHue1 = tempHue + 43;
+    int tetradHue2 = tempHue + 128;
+    int tetradHue3 = tempHue - 85;
+    if (tetradHue1 > 255) tetradHue1 -= 255;
+    if (tetradHue2 > 255) tetradHue2 -= 255;
+    if (tetradHue3 < 0) tetradHue3 += 255;
+    mode[m].hue[0] = tempHue;
+    mode[m].hue[1] = tetradHue1;
+    mode[m].hue[2] = tetradHue2;
+    mode[m].hue[3] = tetradHue3;
+    for (int r = 0; r < 3; r++) {
+      mode[m].sat[r] = 255;
+      mode[m].val[r] = random (110, 255);
+    }
   }
 }
 
@@ -524,7 +614,7 @@ void patternSelect() {
   patterns(patNum);
 }
 
-void confirm() {
+void confirmBlink() {
   mainClock = millis();
   if (mainClock - prevTime > 50) {
     if (frame == 0) clearAll();
@@ -533,6 +623,31 @@ void confirm() {
     if (frame == 3) frame = 0, mode[m].menuNum = 0;
     frame++;
     prevTime = mainClock;
+  }
+}
+
+void randomizerRoll() {
+  clearAll();
+  for (int q = 0; q < 4; q++) {
+    leds[7 * (q) + 0].setHSV(0, 0, 110);
+    leds[7 * (q) + 6].setHSV(0, 0, 110);
+  }
+  if (button[0].holdTime > 1100) {
+    for (int q = 0; q < 4; q++) {
+      leds[7 * (q) + 1].setHSV(0, 0, 110);
+      leds[7 * (q) + 5].setHSV(0, 0, 110);
+    }
+  }
+  if (button[0].holdTime > 1400) {
+    for (int q = 0; q < 4; q++) {
+      leds[7 * (q) + 2].setHSV(0, 0, 110);
+      leds[7 * (q) + 4].setHSV(0, 0, 110);
+    }
+  }
+  if (button[0].holdTime > 1800) {
+    for (int q = 0; q < 4; q++) {
+      leds[7 * (q) + 3].setHSV(0, 0, 110);
+    }
   }
 }
 
@@ -546,10 +661,8 @@ void checkButton() {
     if (button[b].holdTime > 50) {
       if (button[b].buttonState == LOW && button[b].holdTime > button[b].prevHoldTime) {
         if (b == 0) {
-          if (button[b].holdTime > 500 && button[b].holdTime < 800) {
-            for (int a = 0; a < 28; a++) leds[a].setHSV(0, 0, 110);
-          }
-          if (button[b].holdTime > 2000 && button[b].holdTime < 3000 && menu == 0) mode[m].menuNum = 1;
+          if (button[b].holdTime > 800 && button[b].holdTime <= 2000 && menu == 0) mode[m].menuNum = 6;
+          if (button[b].holdTime > 2000 && button[b].holdTime < 3000 && menu == 6) mode[m].menuNum = 1;
           if (button[b].holdTime > 3000 && menu == 1) mode[m].menuNum = 2;
         }
         if (b == 1) {
@@ -571,6 +684,7 @@ void checkButton() {
             if (menu == 4)patNum++, frame = 0, mode[m].currentColor = 0;
           }
           if (b == 1) {
+            Serial.println(mode[m].menuNum);
             if (menu == 0)m--, frame = 0; gap = 0, mode[m].currentColor = 0;
             if (menu == 2) {
               if (stage == 0) targetSlot--; //previous option
@@ -585,8 +699,8 @@ void checkButton() {
         if (button[b].holdTime > 400 && button[b].holdTime < 3000) {
           //medium press
           if (b == 0) {
-            if (button[b].holdTime > 500 &&  button[b].holdTime < 1500) {
-              if (menu == 0) rollColors(), saveAll();
+            if (button[b].holdTime > 800 &&  button[b].holdTime <= 2000) {
+              if (menu == 6) rollColors(), saveAll(), mode[m].menuNum = 5;
             }
             if (menu == 2) {
               if (stage == 0) {
@@ -610,7 +724,6 @@ void checkButton() {
             }
           }
           if (b == 1) {
-            if (menu == 0) rollPattern(), saveAll();
             if (menu == 2) {
               if (stage == 0)mode[m].currentColor = 0, mode[m].nextColor = 1, saveAll(), mode[m].menuNum = 0;//cancle exit
               if (stage == 1)stage = 0;
@@ -621,8 +734,8 @@ void checkButton() {
             if (menu == 4)mode[m].menuNum = 5, frame = 0;//cancle exit
           }
         }
-        if (button[b].holdTime > 600 && Serial) exportSettings();
-        if (button[b].holdTime < 3000 && menu == 1)mode[m].menuNum = 0;
+        if (button[b].holdTime > 300 && Serial) exportSettings();
+        if (button[b].holdTime < 3000 && menu == 1)mode[m].menuNum = 2;
         if (button[b].holdTime < 3000 && menu == 3)mode[m].menuNum = 0;
         button[b].prevPressTime = millis();
       }
