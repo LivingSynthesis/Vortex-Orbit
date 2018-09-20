@@ -28,18 +28,24 @@ FlashStorage(saveData, Orbit);
 
 bool on;
 int m = 0;
-int menu;
-int stage = 0;
-int frame = 0;
-int qBand;
+byte menu;
+byte stage = 0;
+byte frame = 0;
+byte qBand;
 int gap;
-int ran1, ran2, ran3, ran4;
 int patNum;
-int k = 0;
-int targetSlot, currentSlot, targetZone, colorZone;
-int targetHue, selectedHue, targetSat, selectedSat, targetVal, selectedVal;
-int buttonState, buttonState2, lastButtonState, lastButtonState2 = 0;
-
+byte k = 0;
+int targetSlot;
+byte currentSlot;
+int targetZone;
+byte colorZone;
+int targetHue;
+byte selectedHue; 
+int targetSat;
+byte selectedSat;
+int targetVal;
+byte selectedVal;
+bool buttonState, buttonState2, lastButtonState, lastButtonState2 = 0;
 unsigned long mainClock, prevTime, duration, dimmer;
 
 const byte numChars = 128;
@@ -49,7 +55,6 @@ char tempChars[numChars];
 boolean newData = false;
 
 int dataNumber = 0;
-
 
 //--------------------------------------------------------
 
@@ -63,6 +68,7 @@ void setup() {
   loadSave();
   prevTime = 0;
   duration = 0;
+  randomSeed(analogRead(0));
 }
 
 //--------------------------------------------------------
@@ -79,7 +85,7 @@ void loop() {
   checkButton();
   checkSerial();
   FastLED.show();
-
+  Serial.println(mode[m].hue[0]);
 }
 
 void playMode() {
@@ -126,15 +132,11 @@ void patterns(int pat) {
     if (on) {
       getColor(currentColor);
       if (totalColors == 1) val = 0;
-      setLed(ran1);
-      setLed(ran2);
-      setLed(ran3);
-      setLed(ran4);
+      setLed(random(0, 7));
+      setLed(random(7, 14));
+      setLed(random(14, 21));
+      setLed(random(21, 28));
     }
-    ran1 = random(0, 7);
-    ran2 = random(7, 14);
-    ran3 = random(14, 21);
-    ran4 = random(21, 28);
     if (!on)nextColor (1);
     on = !on;
   }
@@ -251,14 +253,10 @@ void patterns(int pat) {
     for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(30);
     if (mainClock - prevTime > 10) {
       getColor(currentColor);
-      ran1 = random(0, 7);
-      ran2 = random(7, 14);
-      ran3 = random(14, 21);
-      ran4 = random(21, 28);
-      setLed(ran1);
-      setLed(ran2);
-      setLed(ran3);
-      setLed(ran4);
+      setLed(random(0, 7));
+      setLed(random(7, 14));
+      setLed(random(14, 21));
+      setLed(random(21, 28));
       nextColor (0);
       prevTime = mainClock;
     }
@@ -291,13 +289,13 @@ void patterns(int pat) {
           setLed(3 + (7 * side) - frame);
         }
         if (frame >= 4) {
-          setLed(3 + (7 * side) + (6 - frame));
-          setLed(3 + (7 * side) - (6 - frame));
+          setLed(3 + (7 * side) + (6 - (frame - 1)));
+          setLed(3 + (7 * side) - (6 - (frame - 1)));
         }
       }
+      if (frame == 3 || frame == 7) nextColor (0);
       frame++;
-      if (frame % 3 == 0) nextColor (0);
-      if (frame > 6) {
+      if (frame > 7) {
         frame = 0;
       }
       prevTime = mainClock;
@@ -386,7 +384,7 @@ void rollPattern() {
 }
 void rollColors() {
   rollPattern();
-  int type = random(0,7);
+  int type = random(0, 7);
   //random, monochrome, complimentary, analogous, triadic, split complimentary, tetradic
   if (type == 0) { //random
     mode[m].numColors = random(1, 8);
@@ -684,7 +682,6 @@ void checkButton() {
             if (menu == 4)patNum++, frame = 0, mode[m].currentColor = 0;
           }
           if (b == 1) {
-            Serial.println(mode[m].menuNum);
             if (menu == 0)m--, frame = 0; gap = 0, mode[m].currentColor = 0;
             if (menu == 2) {
               if (stage == 0) targetSlot--; //previous option
@@ -700,7 +697,7 @@ void checkButton() {
           //medium press
           if (b == 0) {
             if (button[b].holdTime > 800 &&  button[b].holdTime <= 2000) {
-              if (menu == 6) rollColors(), saveAll(), mode[m].menuNum = 5;
+              if (menu == 6) rollColors(), saveAll(), frame = 0, mode[m].menuNum = 5;
             }
             if (menu == 2) {
               if (stage == 0) {
@@ -720,7 +717,7 @@ void checkButton() {
               }
             }
             if (menu == 4) {
-              mode[m].patternNum = patNum, saveAll(), mode[m].menuNum = 5;//confirm selection
+              mode[m].patternNum = patNum, saveAll(), frame = 0, mode[m].menuNum = 5;//confirm selection
             }
           }
           if (b == 1) {
