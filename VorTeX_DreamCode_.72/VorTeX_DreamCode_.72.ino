@@ -9,7 +9,7 @@
 #define CLOCK_PIN 3
 
 #define totalModes 7
-#define totalPatterns 18
+#define totalPatterns 19
 //---------------------------------------------------------
 
 CRGB leds[NUM_LEDS];
@@ -47,7 +47,7 @@ byte selectedSat;
 int targetVal;
 byte selectedVal;
 bool buttonState, buttonState2, lastButtonState, lastButtonState2 = 0;
-unsigned long mainClock, prevTime, duration, dimmer;
+unsigned long mainClock, prevTime, duration, dimmer, prevTime2;
 
 const byte numChars = 128;
 char receivedChars[numChars];
@@ -69,6 +69,7 @@ void setup() {
   loadSave();
   prevTime = 0;
   duration = 0;
+  randomSeed(analogRead(0));
 }
 
 //--------------------------------------------------------
@@ -364,8 +365,11 @@ void patterns(int pat) {
     }
   }
   if (pat == 17) { //Warp Fade
+    if (mainClock - prevTime2 > 5) {
+      for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(5);
+      prevTime2 = mainClock;
+    }
     if (mainClock - prevTime > 25) {
-      for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(30);
       getColor(currentColor);
       setLed(dot);
       dot++;
@@ -376,7 +380,25 @@ void patterns(int pat) {
       prevTime = mainClock;
     }
   }
-
+  if (pat == 18) { //Double fade
+    if (mainClock - prevTime2 > 5) {
+      for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(5);
+      prevTime2 = mainClock;
+    }
+    if (mainClock - prevTime > 50) {
+      getColor(currentColor);
+      setLed(dot);
+      dot++;
+      int dot2 = dot + 13;
+      if (dot2 > 27) dot2 -= 28;
+      setLed(dot2);
+      if (dot >= NUM_LEDS) {
+        dot = 0;
+        nextColor(0);
+      }
+      prevTime = mainClock;
+    }
+  }
   // stretch
   // centerpoint
 }
@@ -424,23 +446,23 @@ void clearAll() {
 }
 
 void rollPattern() {
-  mode[m].patternNum = random8(0, totalPatterns);
+  mode[m].patternNum = random(0, totalPatterns);
 }
 void rollColors() {
   rollPattern();
-  int type = random8(0, 7);
+  int type = random(0, 7);
   //random, monochrome, complimentary, analogous, triadic, split complimentary, tetradic
   if (type == 0) { //random
-    mode[m].numColors = random8(1, 8);
+    mode[m].numColors = random(1, 8);
     for (int r = 0; r < 8; r ++) {
-      mode[m].hue[r] = random8(0, 255);
-      mode[m].sat[r] = random8(0, 255);
-      mode[m].val[r] = random8(110, 255);
+      mode[m].hue[r] = random(0, 255);
+      mode[m].sat[r] = random(0, 255);
+      mode[m].val[r] = random(110, 255);
     }
   }
   if (type == 1) { //monochrome
     mode[m].numColors = 4;
-    int tempHue = random8 (0, 255);
+    int tempHue = random (0, 255);
     for (int r = 0; r < 4; r++) {
       mode[m].hue[r] = tempHue;
       mode[m].sat[r] = r * 85;
@@ -449,19 +471,19 @@ void rollColors() {
   }
   if (type == 2) { //complimentary
     mode[m].numColors = 2;
-    int tempHue = random8 (0, 255);
+    int tempHue = random (0, 255);
     int compHue = tempHue + 128;
     if (compHue >= 255) compHue -= 255;
     mode[m].hue[0] = tempHue;
     mode[m].hue[1] = compHue;
     for (int r = 0; r < 2; r++) {
       mode[m].sat[r] = 255;
-      mode[m].val[r] = random8 (110, 255);
+      mode[m].val[r] = random (110, 255);
     }
   }
   if (type == 3) { // analogous
     mode[m].numColors = 3;
-    int tempHue = random8 (0, 255);
+    int tempHue = random (0, 255);
     int analHue1 = tempHue - 21;
     if (analHue1 < 0) analHue1 += 255;
     int analHue2 = tempHue + 21;
@@ -471,12 +493,12 @@ void rollColors() {
     mode[m].hue[2] = analHue2;
     for (int r = 0; r < 3; r++) {
       mode[m].sat[r] = 255;
-      mode[m].val[r] = random8 (110, 255);
+      mode[m].val[r] = random (110, 255);
     }
   }
   if (type == 4) { // triadic
     mode[m].numColors = 3;
-    int tempHue = random8 (0, 255);
+    int tempHue = random (0, 255);
     int triadHue1 = tempHue + 85;
     int triadHue2 = tempHue - 85;
     if (triadHue1 > 255) triadHue1 += 255;
@@ -486,12 +508,12 @@ void rollColors() {
     mode[m].hue[2] = triadHue2;
     for (int r = 0; r < 3; r++) {
       mode[m].sat[r] = 255;
-      mode[m].val[r] = random8 (110, 255);
+      mode[m].val[r] = random (110, 255);
     }
   }
   if (type == 5) { // split complimentary
     mode[m].numColors = 3;
-    int tempHue = random8 (0, 255);
+    int tempHue = random (0, 255);
     int splitCompHue1 = tempHue + 106;
     int splitCompHue2 = tempHue - 106;
     if (splitCompHue1 > 255) splitCompHue1 += 255;
@@ -501,12 +523,12 @@ void rollColors() {
     mode[m].hue[2] = splitCompHue2;
     for (int r = 0; r < 3; r++) {
       mode[m].sat[r] = 255;
-      mode[m].val[r] = random8 (110, 255);
+      mode[m].val[r] = random (110, 255);
     }
   }
   if (type == 6) { // tetradic
     mode[m].numColors = 4;
-    int tempHue = random8 (0, 255);
+    int tempHue = random (0, 255);
     int tetradHue1 = tempHue + 43;
     int tetradHue2 = tempHue + 128;
     int tetradHue3 = tempHue - 85;
@@ -519,10 +541,10 @@ void rollColors() {
     mode[m].hue[3] = tetradHue3;
     for (int r = 0; r < 3; r++) {
       mode[m].sat[r] = 255;
-      mode[m].val[r] = random8 (110, 255);
+      mode[m].val[r] = random (110, 255);
     }
   }
-  bool blank = random8(0, 2);
+  bool blank = random(0, 2);
   if (mode[m].patternNum == 1 || mode[m].patternNum == 2 || mode[m].patternNum == 8 || mode[m].patternNum == 13 || mode[m].patternNum == 16) {
     if (blank) {
       if (mode[m].numColors < 8) {
@@ -533,7 +555,7 @@ void rollColors() {
       }
       mode[m].val[0] = 0;
     }
-    else mode[m].val[0] = random8 (0, 110);
+    else mode[m].val[0] = random (0, 110);
   }
 }
 
@@ -790,7 +812,7 @@ void checkButton() {
         }
         if (button[b].holdTime > 300 && Serial) exportSettings();
         if (button[b].holdTime < 3000 && menu == 1)mode[m].menuNum = 2;
-        if (button[b].holdTime < 3000 && menu == 3)mode[m].menuNum = 0;
+        if (button[b].holdTime < 3000 && menu == 3)mode[m].menuNum = 4;
         button[b].prevPressTime = millis();
       }
     }
