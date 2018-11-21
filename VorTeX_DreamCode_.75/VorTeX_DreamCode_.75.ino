@@ -450,9 +450,9 @@ void rollPattern() {
 }
 void rollColors() {
   rollPattern();
-  int type = random(0, 7);
-  //random, monochrome, complimentary, analogous, triadic, split complimentary, tetradic
-  if (type == 0) { //random
+  int type = random(0, 9);
+  //true random, monochrome, complimentary, analogous, triadic, split complimentary, tetradic
+  if (type == 0) { //true random
     mode[m].numColors = random(1, 8);
     for (int r = 0; r < 8; r ++) {
       mode[m].hue[r] = random(0, 255);
@@ -539,7 +539,29 @@ void rollColors() {
     mode[m].hue[1] = tetradHue1;
     mode[m].hue[2] = tetradHue2;
     mode[m].hue[3] = tetradHue3;
-    for (int r = 0; r < 3; r++) {
+    for (int r = 0; r < 4; r++) {
+      mode[m].sat[r] = 255;
+      mode[m].val[r] = random (110, 255);
+    }
+  }
+  if (type == 7) { // square
+    mode[m].numColors = 4;
+    int tempHue = random (0, 255);
+    int tetradHue1 = tempHue + 64;
+    int tetradHue2 = tempHue + 128;
+    int tetradHue3 = tempHue + 192;
+    if (tetradHue1 > 255) tetradHue1 -= 255;
+    if (tetradHue2 > 255) tetradHue2 -= 255;
+    if (tetradHue3 > 255) tetradHue2 -= 255;
+    for (int r = 0; r < 4; r++) {
+      mode[m].sat[r] = 255;
+      mode[m].val[r] = random (110, 255);
+    }
+  }
+  if (type == 8) { //full rainbow
+    mode[m].numColors = 8;
+    for (int r = 0; r < 8; r++) {
+      mode[m].hue[r] = r * 32;
       mode[m].sat[r] = 255;
       mode[m].val[r] = random (110, 255);
     }
