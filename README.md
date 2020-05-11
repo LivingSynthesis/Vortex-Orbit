@@ -8,17 +8,17 @@ If you want to more easily work on the patterns of your vortex, you can upload p
 * Get the Arduino IDE
 * Connect your Vortex via USB
 * Open Arduino IDE
-** Under Tools -> Port, select the vortex - Something like /dev/cu.usbmodem144. If you cannot see the vortex show up under ports when you connect:
-*** Make sure you're using a cable that support data transfer. Try a few.
-*** Make sure you have the driver (should come with your OS but who knows...). Google for Trinket M0 drivers and install them.
-** Open Tools -> Serial Monitor
-** Press and Hold Button 2 (closer to center) on your vortex
-** You will get a list of patterns such as "<0, 9, 4, 192, 255, 170, 110, 255, 170, 160, 255, 170, 230, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>"
-*** The first number is the mode index - the first mode is 0, second one is 1, etc.
-*** The second number is the pattern - 0 is ribbon, 1 is tracer, etc.. Try them and see!
-*** The 3rd number is number of colors in the pattern
-*** The next 24 numbers are the 8 possible colors in HSV triplets from 0 to 255. You can read more details about it at https://github.com/FastLED/FastLED/wiki/FastLED-HSV-Colors. For example 96, 255, 200 will be a bright green. 96 is green, 255 is how rich the color is (255 is max), and 200 is how bright it is.
-** To modify one of the patterns, paste a different set of numbers into the Serial Monitor box at the top and click send.
+* Under Tools -> Port, select the vortex - Something like /dev/cu.usbmodem144. If you cannot see the vortex show up under ports when you connect:
+..* Make sure you're using a cable that support data transfer. Try a few.
+..* Make sure you have the driver (should come with your OS but who knows...). Google for Trinket M0 drivers and install them.
+* Open Tools -> Serial Monitor
+* Press and Hold Button 2 (closer to center) on your vortex
+* You will get a list of patterns such as "<0, 9, 4, 192, 255, 170, 110, 255, 170, 160, 255, 170, 230, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0>"
+..* The first number is the mode index - the first mode is 0, second one is 1, etc.
+..* The second number is the pattern - 0 is ribbon, 1 is tracer, etc.. Try them and see!
+..* The 3rd number is number of colors in the pattern
+..* The next 24 numbers are the 8 possible colors in HSV triplets from 0 to 255. You can read more details about it at https://github.com/FastLED/FastLED/wiki/FastLED-HSV-Colors. For example 96, 255, 200 will be a bright green. 96 is green, 255 is how rich the color is, and 200 is how bright it is.
+* To modify one of the patterns, paste a different set of numbers into the Serial Monitor box at the top and click send.
 
 # Developer Guide
 
