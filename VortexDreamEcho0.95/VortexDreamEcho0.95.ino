@@ -18,8 +18,8 @@
 #define DATA_PIN 4
 #define CLOCK_PIN 3
 
-#define totalModes 14
-#define totalPatterns 21
+#define totalModes 14 // How many modes the vortex cycles through
+#define totalPatterns 21 // How many possible patterns there are
 
 //Objects
 //---------------------------------------------------------
@@ -135,6 +135,12 @@ void playMode() {
 
 //Patterns
 //---------------------------------------------------------
+// To add new patterns add a switch to this method and update totalPatterns.
+// In your pattern code, getColor() will set the hue, sat, val variables for this iteration.
+// Then call setLeds() to set those values on to the leds you want.
+// The LEDs are arranged from the center out and around the other side then back to center. 
+// So 0,1,2 is one arm, 3 is the edge, then 4,5,6 [o] 7,8,9 on the other side then 10 on the edge. Etc...
+// this code will repeat forever, incrementing "mainClock" with each iteration.
 
 void patterns(int pat) {
 
