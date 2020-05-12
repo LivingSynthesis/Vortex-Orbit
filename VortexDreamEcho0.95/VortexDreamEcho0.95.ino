@@ -18,8 +18,8 @@
 #define DATA_PIN 4
 #define CLOCK_PIN 3
 
-#define totalModes 14
-#define totalPatterns 21
+#define totalModes 14 // How many modes the vortex cycles through
+#define totalPatterns 21 // How many possible patterns there are
 
 //Objects
 //---------------------------------------------------------
@@ -135,6 +135,12 @@ void playMode() {
 
 //Patterns
 //---------------------------------------------------------
+// To add new patterns add a switch to this method and update totalPatterns.
+// In your pattern code, getColor() will set the hue, sat, val variables for this iteration.
+// Then call setLeds() to set those values on to the leds you want.
+// The LEDs are arranged from the center out and around the other side then back to center. 
+// So 0,1,2 is one arm, 3 is the edge, then 4,5,6 [o] 7,8,9 on the other side then 10 on the edge. Etc...
+// this code will repeat forever, incrementing "mainClock" with each iteration.
 
 void patterns(int pat) {
 
@@ -1438,25 +1444,33 @@ void importData() {
       dataIsValid = true;
     }
     if (dataIsValid) {
-      strcpy(tempChars, receivedChars);
-      strtokIndx = strtok(tempChars, ",");
-      int mNum = atoi(strtokIndx);
-      strtokIndx = strtok(NULL, ",");
-      mode[mNum].patternNum = atoi(strtokIndx);
-      strtokIndx = strtok(NULL, ",");
-      mode[mNum].numColors = atoi(strtokIndx);
-      for (int col = 0; col < 8; col++) {
-        strtokIndx = strtok(NULL, ",");
-        mode[mNum].hue[col] = atoi(strtokIndx);
-        strtokIndx = strtok(NULL, ",");
-        mode[mNum].sat[col] = atoi(strtokIndx);
-        strtokIndx = strtok(NULL, ",");
-        mode[mNum].val[col] = atoi(strtokIndx);
-      }
+      importMode(receivedChars);
       Serial.println("Data recieved");
+      Serial.println(receivedChars);
       saveAll();
       dataIsValid = false;
     }
+  }
+}
+
+// Comma separated list of 27 numbers (3 settings + 3 * 8 colors):
+// Mode Num, Pattern Num, Num Colors, Color1 H, Color1 S, Color1 V, Color2 H..... Color8 V
+void importMode(char input[]) {
+  char* strtokIndx;
+  strcpy(tempChars, input);
+  strtokIndx = strtok(tempChars, ",");
+  int mNum = atoi(strtokIndx);
+  strtokIndx = strtok(NULL, ",");
+  mode[mNum].patternNum = atoi(strtokIndx);
+  strtokIndx = strtok(NULL, ",");
+  mode[mNum].numColors = atoi(strtokIndx);
+  for (int col = 0; col < 8; col++) {
+    strtokIndx = strtok(NULL, ",");
+    mode[mNum].hue[col] = atoi(strtokIndx);
+    strtokIndx = strtok(NULL, ",");
+    mode[mNum].sat[col] = atoi(strtokIndx);
+    strtokIndx = strtok(NULL, ",");
+    mode[mNum].val[col] = atoi(strtokIndx);
   }
 }
 
@@ -1464,198 +1478,18 @@ void importData() {
 //---------------------------------------------------------
 
 void setDefaults() {
-  for (int tempMode = 0; tempMode < totalModes; tempMode++) {
-    mode[tempMode].patternNum = 0;
-    mode[tempMode].numColors = 1;
-    int tempColor = random(0, 255);
-    mode[tempMode].hue[0] = tempColor;
-    mode[tempMode].sat[0] = 255;
-    mode[tempMode].val[0] = 255;
-  }
-
-  mode[0].patternNum = 8;
-  mode[0].numColors = 8;
-  for (int c = 0; c < mode[0].numColors; c++) {
-    mode[0].hue[c] = c * 32;
-    mode[0].sat[c] = 255;
-    mode[0].val[c] = 170;
-  }
-
-  mode[1].patternNum = 6;
-  mode[1].numColors = 3;
-  mode[1].hue[0] = 0;
-  mode[1].sat[0] = 255;
-  mode[1].val[0] = 170;
-  mode[1].hue[1] = 160;
-  mode[1].sat[1] = 255;
-  mode[1].val[1] = 170;
-  mode[1].hue[2] = 224;
-  mode[1].sat[2] = 255;
-  mode[1].val[2] = 120;
-
-  mode[2].patternNum = 2;
-  mode[2].numColors = 5;
-  mode[2].hue[0] = 0;
-  mode[2].sat[0] = 0;
-  mode[2].val[0] = 0;
-  mode[2].hue[1] = 0;
-  mode[2].sat[1] = 0;
-  mode[2].val[1] = 120;
-  mode[2].hue[2] = 64;
-  mode[2].sat[2] = 170;
-  mode[2].val[2] = 120;
-  mode[2].hue[2] = 64;
-  mode[2].sat[2] = 255;
-  mode[2].val[2] = 120;
-  mode[2].hue[3] = 160;
-  mode[2].sat[3] = 255;
-  mode[2].val[3] = 120;
-
-  mode[3].patternNum = 3;
-  mode[3].numColors = 2;
-  mode[3].hue[0] = 224;
-  mode[3].sat[0] = 255;
-  mode[3].val[0] = 170;
-  mode[3].hue[1] = 192;
-  mode[3].sat[1] = 255;
-  mode[3].val[1] = 170;
-
-  mode[4].patternNum = 9;
-  mode[4].numColors = 3;
-  mode[4].hue[0] = 0;
-  mode[4].sat[0] = 255;
-  mode[4].val[0] = 170;
-  mode[4].hue[1] = 96;
-  mode[4].sat[1] = 255;
-  mode[4].val[1] = 170;
-  mode[4].hue[2] = 160;
-  mode[4].sat[2] = 255;
-  mode[4].val[2] = 170;
-
-  mode[5].patternNum = 5;
-  mode[5].numColors = 4;
-  mode[5].hue[0] = 0;
-  mode[5].sat[0] = 255;
-  mode[5].val[0] = 120;
-  mode[5].hue[1] = 160;
-  mode[5].sat[1] = 255;
-  mode[5].val[1] = 170;
-  mode[5].hue[2] = 64;
-  mode[5].sat[2] = 255;
-  mode[5].val[2] = 170;
-  mode[5].hue[3] = 96;
-  mode[5].sat[3] = 255;
-  mode[5].val[3] = 170;
-
-  mode[6].patternNum = 7;
-  mode[6].numColors = 3;
-  mode[6].hue[0] = 0;
-  mode[6].sat[0] = 255;
-  mode[6].val[0] = 120;
-  mode[6].hue[1] = 192;
-  mode[6].sat[1] = 255;
-  mode[6].val[1] = 170;
-  mode[6].hue[2] = 128;
-  mode[6].sat[2] = 255;
-  mode[6].val[2] = 170;
-
-  mode[7].patternNum = 1;
-  mode[7].numColors = 3;
-  mode[7].hue[0] = 16;
-  mode[7].sat[0] = 255;
-  mode[7].val[0] = 170;
-  mode[7].hue[1] = 96;
-  mode[7].sat[1] = 255;
-  mode[7].val[1] = 255;
-  mode[7].hue[2] = 192;
-  mode[7].sat[2] = 255;
-  mode[7].val[2] = 85;
-
-  mode[8].patternNum = 17;
-  mode[8].numColors = 3;
-  mode[8].hue[0] = 16;
-  mode[8].sat[0] = 255;
-  mode[8].val[0] = 255;
-  mode[8].hue[1] = 128;
-  mode[8].sat[1] = 255;
-  mode[8].val[1] = 85;
-  mode[8].hue[2] = 160;
-  mode[8].sat[2] = 255;
-  mode[8].val[2] = 255;
-
-  mode[9].patternNum = 20;
-  mode[9].numColors = 1;
-  mode[9].hue[0] = 80;
-  mode[9].sat[0] = 255;
-  mode[9].val[0] = 85;
-
-  mode[10].patternNum = 4;
-  mode[10].numColors = 8;
-  mode[10].hue[0] = 0;
-  mode[10].sat[0] = 255;
-  mode[10].val[0] = 85;
-  mode[10].hue[1] = 32;
-  mode[10].sat[1] = 255;
-  mode[10].val[1] = 170;
-  mode[10].hue[2] = 64;
-  mode[10].sat[2] = 255;
-  mode[10].val[2] = 255;
-  mode[10].hue[3] = 96;
-  mode[10].sat[3] = 255;
-  mode[10].val[3] = 85;
-  mode[10].hue[4] = 128;
-  mode[10].sat[4] = 255;
-  mode[10].val[4] = 85;
-  mode[10].hue[5] = 160;
-  mode[10].sat[5] = 255;
-  mode[10].val[5] = 85;
-  mode[10].hue[6] = 192;
-  mode[10].sat[6] = 255;
-  mode[10].val[6] = 170;
-  mode[10].hue[7] = 224;
-  mode[10].sat[7] = 255;
-  mode[10].val[7] = 85;
-
-  mode[11].patternNum = 19;
-  mode[11].numColors = 3;
-  mode[11].hue[0] = 144;
-  mode[11].sat[0] = 0;
-  mode[11].val[0] = 0;
-  mode[11].hue[1] = 144;
-  mode[11].sat[1] = 0;
-  mode[11].val[1] = 255;
-  mode[11].hue[2] = 96;
-  mode[11].sat[2] = 255;
-  mode[11].val[2] = 0;
-
-  mode[12].patternNum = 2;
-  mode[12].numColors = 4;
-  mode[12].hue[0] = 192;
-  mode[12].sat[0] = 255;
-  mode[12].val[0] = 85;
-  mode[12].hue[1] = 240;
-  mode[12].sat[1] = 255;
-  mode[12].val[1] = 255;
-  mode[12].hue[2] = 64;
-  mode[12].sat[2] = 255;
-  mode[12].val[2] = 85;
-  mode[12].hue[3] = 144;
-  mode[12].sat[3] = 255;
-  mode[12].sat[3] = 170;
-
-  mode[13].patternNum = 8;
-  mode[13].numColors = 5;
-  mode[13].hue[0] = 16;
-  mode[13].sat[0] = 255;
-  mode[13].val[0] = 0;
-  mode[13].hue[1] = 144;
-  mode[13].sat[1] = 255;
-  mode[13].val[1] = 0;
-  mode[13].hue[2] = 16;
-  mode[13].sat[2] = 255;
-  mode[13].val[2] = 85;
-  mode[13].hue[3] = 144;
-  mode[13].sat[3] = 255;
-  mode[13].val[3] = 255;
+  importMode("0, 8, 8, 0, 255, 170, 32, 255, 170, 64, 255, 170, 96, 255, 170, 128, 255, 170, 160, 255, 170, 192, 255, 170, 224, 255, 170");
+  importMode("1, 6, 3, 0, 255, 170, 160, 255, 170, 224, 255, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("2, 2, 5, 0, 0, 0, 0, 0, 120, 64, 255, 120, 160, 255, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("3, 3, 2, 224, 255, 170, 192, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("4, 9, 3, 0, 255, 170, 96, 255, 170, 160, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("5, 5, 4, 0, 255, 120, 160, 255, 170, 64, 255, 170, 96, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("6, 7, 3, 0, 255, 120, 192, 255, 170, 128, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("7, 1, 3, 16, 255, 170, 96, 255, 255, 192, 255, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("8, 17, 3, 16, 255, 255, 128, 255, 85, 160, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("9, 20, 1, 80, 255, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("10, 4, 8, 0, 255, 85, 32, 255, 170, 64, 255, 255, 96, 255, 85, 128, 255, 85, 160, 255, 85, 192, 255, 170, 224, 255, 85");
+  importMode("11, 19, 3, 144, 0, 0, 144, 0, 255, 96, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("12, 2, 4, 192, 255, 85, 240, 255, 255, 64, 255, 85, 144, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("13, 8, 5, 16, 255, 0, 144, 255, 0, 16, 255, 85, 144, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
 }
-
