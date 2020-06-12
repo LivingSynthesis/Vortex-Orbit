@@ -40,6 +40,8 @@ typedef struct Orbit {
   uint8_t sVal[totalModes][8];
   uint8_t sNumColors[totalModes];
   uint8_t sPatternNum[totalModes];
+  uint8_t brightness[totalModes];
+  uint8_t demoSpeed;
 };
 FlashStorage(saveData, Orbit);
 
@@ -87,7 +89,8 @@ boolean newData = false;
 
 int dataNumber = 0;
 
-int menuSection, brightVal = 2, demoSpeed = 0;
+int menuSection, brightVal = 2, demoSpeed = 0, prevBrightness = 20;
+int brightness[totalModes];
 
 //Main body
 //---------------------------------------------------------
@@ -126,6 +129,7 @@ void loop() {
 
   checkButton();
   checkSerial();
+  FastLED.setBrightness(brightness[m]);
   FastLED.show();
   //Serial.println(m);
 }
@@ -838,25 +842,25 @@ void rollPattern() {
 //Menus and settings
 //---------------------------------------------------------
 
-void openColors() {
-  mainClock = millis();
-  if (mainClock - prevTime > 75) {
-    clearAll();
-    for (int side = 0; side < 4; side++) {
-      if (frame >= 0 && frame <= 3) {
-        leds[3 + (7 * side) + frame].setHSV(0, 0, 170);
-        leds[3 + (7 * side) - frame].setHSV(0, 0, 170);
-      }
-      if (frame >= 4 && frame <= 6) {
-        leds[3 + (7 * side) + (6 - frame)].setHSV(0, 0, 170);
-        leds[3 + (7 * side) - (6 - frame)].setHSV(0, 0, 170);
-      }
-    }
-    frame++;
-    if (frame > 6) frame = 0;
-    prevTime = mainClock;
-  }
-}
+//void openColors() {
+//  mainClock = millis();
+//  if (mainClock - prevTime > 75) {
+//    clearAll();
+//    for (int side = 0; side < 4; side++) {
+//      if (frame >= 0 && frame <= 3) {
+//        leds[3 + (7 * side) + frame].setHSV(0, 0, 170);
+//        leds[3 + (7 * side) - frame].setHSV(0, 0, 170);
+//      }
+//      if (frame >= 4 && frame <= 6) {
+//        leds[3 + (7 * side) + (6 - frame)].setHSV(0, 0, 170);
+//        leds[3 + (7 * side) - (6 - frame)].setHSV(0, 0, 170);
+//      }
+//    }
+//    frame++;
+//    if (frame > 6) frame = 0;
+//    prevTime = mainClock;
+//  }
+//}
 
 void colorSet() {
   if (stage == 0) {
@@ -952,19 +956,19 @@ void colorWheel(int layer) {
   blinkTarget(300);
 }
 
-void openPatterns() {
-  mainClock = millis();
-  if (mainClock - prevTime > 100) {
-    for (int a = 0; a < 28; a++) {
-      leds[a].setHSV(0, 0, 110);
-    }
-    if (on) {
-      clearAll();
-    }
-    on = !on;
-    prevTime = mainClock;
-  }
-}
+//void openPatterns() {
+//  mainClock = millis();
+//  if (mainClock - prevTime > 100) {
+//    for (int a = 0; a < 28; a++) {
+//      leds[a].setHSV(0, 0, 110);
+//    }
+//    if (on) {
+//      clearAll();
+//    }
+//    on = !on;
+//    prevTime = mainClock;
+//  }
+//}
 
 void patternSelect() {
   mainClock = millis();
@@ -986,21 +990,22 @@ void chooseBrightness() {
       leds[7 * (q) + 6].setHSV(0, 0, 255);
     }
     if (brightVal == 1) {
-      newBrightness = 10;
+      newBrightness = 20;
       leds[7 * (q) + 1].setHSV(0, 0, 255);
       leds[7 * (q) + 5].setHSV(0, 0, 255);
     }
     if (brightVal == 2) {
-      newBrightness = 20;
+      newBrightness = 35;
       leds[7 * (q) + 2].setHSV(0, 0, 255);
       leds[7 * (q) + 4].setHSV(0, 0, 255);
     }
     if (brightVal == 3) {
-      newBrightness == 28;
+      newBrightness = 50;
       leds[7 * (q) + 3].setHSV(0, 0, 255);
     }
   }
-  FastLED.setBrightness(newBrightness);
+  brightness[m] = newBrightness;
+  Serial.println(prevBrightness);
 }
 
 void chooseDemoSpeed() {
@@ -1154,7 +1159,14 @@ void checkButton() {
         }
         if (menu == 2) {
           if (button[b].holdTime > 1000 &&  button[b].holdTime <= 2000) {
-            if (b == 1) mode[m].menuNum = 6;
+            if (b == 1) {
+              mode[m].menuNum = 6;
+              prevBrightness = brightness[m];
+              if (prevBrightness == 3)brightVal = 0;
+              if (prevBrightness == 20)brightVal = 1;
+              if (prevBrightness == 35)brightVal = 2;
+              if (prevBrightness == 50)brightVal = 3;
+            }
           }
           if (button[b].holdTime > 2000 && button[b].holdTime <= 3000) {
             if (b == 1) mode[m].menuNum = 7;
@@ -1213,34 +1225,42 @@ void checkButton() {
             if (b == 1)patNum--, frame = 0, mode[m].currentColor = 0;
           }
           if (button[b].holdTime > 300 && button[b].holdTime < 3000) {
-            if (b == 0) mode[m].patternNum = patNum, saveAll(), frame = 0, mode[m].menuNum = 9;//confirm selection
-            if (b == 1) if (menu == 4)mode[m].menuNum = 9, frame = 0;//cancle exit
+            mode[m].menuNum = 9;
+            if (b == 0) mode[m].patternNum = patNum, saveAll(), frame = 0;//confirm selection
+            if (b == 1) if (menu == 4) frame = 0;//cancle exit
           }
         }
         if (menu == 5) {
-          if (button[b].holdTime <= 400) sharing = !sharing;
-          if (button[b].holdTime > 400 && button[b].holdTime < 3000) sharing = true, mode[m].menuNum = 0;
+          if (button[b].holdTime <= 500) sharing = !sharing;
+          if (button[b].holdTime > 500 && button[b].holdTime < 3000) sharing = true, mode[m].menuNum = 9;
         }
         if (menu == 6) {
           if (button[b].holdTime <= 300) {
             if (b == 0) brightVal++;
             if (b == 1) brightVal--;
           }
-          if (button[b].holdTime > 300 && button[b].holdTime < 3000) mode[m].menuNum = 0;
+          if (button[b].holdTime > 300 && button[b].holdTime < 3000) {
+            mode[m].menuNum = 9;
+            if (b == 0) saveAll();
+            if (b == 1) brightness[m] = prevBrightness;
+          }
         }
         if (menu == 7) {
           if (button[b].holdTime <= 300) {
             if (b == 0) demoSpeed++;
             if (b == 1) demoSpeed--;
           }
-          if (button[b].holdTime > 300 && button[b].holdTime < 3000) mode[m].menuNum = 0;
+          if (button[b].holdTime > 300 && button[b].holdTime < 3000) mode[m].menuNum = 9;
         }
         if (menu == 8) {
           if (button[b].holdTime <= 300)restore = !restore;
           if (button[b].holdTime > 300 && button[b].holdTime < 3000) {
-            mode[m].menuNum = 0;
+            mode[m].menuNum = 9;
             if (b == 0) {
-              if (restore)setDefaults();
+              if (restore){
+                setDefaults();
+                saveAll();
+              }
             }
           }
         }
@@ -1290,6 +1310,8 @@ void loadSave() {
         mode[modes].sat[c] = myOrbit.sSat[modes][c];
         mode[modes].val[c] = myOrbit.sVal[modes][c];
       }
+      brightness[modes] = myOrbit.brightness[modes];
+      demoSpeed = myOrbit.demoSpeed;
     }
   }
 }
@@ -1303,6 +1325,8 @@ void saveAll() {
       myOrbit.sSat[modes][c] = mode[modes].sat[c];
       myOrbit.sVal[modes][c] = mode[modes].val[c];
     }
+    myOrbit.brightness[modes] = brightness[modes];
+    myOrbit.demoSpeed = demoSpeed;
   }
   myOrbit.dataIsStored = true;
   saveData.write(myOrbit);
@@ -1635,6 +1659,8 @@ void importMode(char input[]) {
 //---------------------------------------------------------
 
 void setDefaults() {
+  for (int h = 0; h < totalModes; h++) brightness[h] = 20;
+  demoSpeed = 2;
   importMode("0, 8, 8, 0, 255, 170, 32, 255, 170, 64, 255, 170, 96, 255, 170, 128, 255, 170, 160, 255, 170, 192, 255, 170, 224, 255, 170");
   importMode("1, 6, 3, 0, 255, 170, 160, 255, 170, 224, 255, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
   importMode("2, 2, 5, 0, 0, 0, 0, 0, 120, 64, 255, 120, 160, 255, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
