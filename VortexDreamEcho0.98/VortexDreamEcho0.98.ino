@@ -89,7 +89,13 @@ boolean newData = false;
 
 int dataNumber = 0;
 
-int menuSection, brightVal = 2, demoSpeed = 0, prevBrightness = 20;
+int menuSection, brightVal = 2, prevBrightness = 20;
+
+// Demo mode keeps rolling randomized colors until user confirms or cancels
+int demoSpeed = 0;
+bool demoMode = false;
+unsigned long demoTime;
+
 int brightness[totalModes];
 
 //Main body
@@ -138,6 +144,9 @@ int hue, sat, val;
 
 void playMode() {
   mainClock = millis();
+
+  if (demoMode) runDemo();
+
   patterns(mode[m].patternNum);
   catchMode();
 }
@@ -627,6 +636,20 @@ void patterns(int pat) {
   }
 }
 
+// Randomize colors and pattern every so often
+void runDemo() {
+  int demoInterval;
+  if (demoSpeed == 0) demoInterval = 2000;
+  if (demoSpeed == 1) demoInterval = 4000;
+  if (demoSpeed == 2) demoInterval = 8000;
+  if (demoSpeed == 3) demoInterval = 16000;
+  
+  if (mainClock - demoTime > demoInterval) {
+    rollColors();
+    demoTime = mainClock;
+  }
+}
+
 //Led controlls for running patterns
 //-----------------------------------------------------
 
@@ -1108,6 +1131,8 @@ void menuRing(int buttonNum) {
 }
 
 //Buttons
+// button[0] is outer button
+// button[1] is inner button
 //---------------------------------------------------------
 
 void checkButton() {
@@ -1136,16 +1161,24 @@ void checkButton() {
       }//======================================================================================================
       // ---------------------------------------Button Up------------------------------------------------------
       if (button[b].buttonState == HIGH && button[b].lastButtonState == LOW && millis() - button[b].prevPressTime > 150) {
-        if (menu == 0) {
+        if (menu == 0 && !demoMode) {
           if (button[b].holdTime <= 300) {
             if (b == 0) m++, frame = 0, gap = 0, mode[m].currentColor = 0; //, throwMode();
             if (b == 1) m--, frame = 0, gap = 0, mode[m].currentColor = 0;
           }
           if (button[b].holdTime > 300 && Serial) exportSettings();
         }
+        // press in demo mode
+        if (menu == 0 && demoMode) {
+          if (button[b].holdTime <= 300) {            
+            if (b == 0) demoMode = false, saveAll(), mode[m].menuNum = 9;
+            if (b == 1) demoMode = false;
+          }
+        }
+
         if (menu == 1) {
           if (button[0].holdTime > 1000 &&  button[b].holdTime <= 2000) {
-            if (b == 0) rollColors(), saveAll(), frame = 0, mode[m].menuNum = 9;
+            if (b == 0) demoMode = true, frame = 0, mode[m].menuNum = 0, demoTime = 0;
           }
           if (button[0].holdTime > 2000 && button[b].holdTime <= 3000) {
             if (b == 0) mode[m].menuNum = 3;
