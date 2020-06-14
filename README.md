@@ -7,8 +7,7 @@ This is the Vortex Dream Code, it is the framework for controlling the colors an
 
 Your orbit has 3 buttons:
 
-  A  B              Power
-( *  *      O        - )
+(A_B_____•______Power)
 
 Turn on your orbit by flipping the power button and use A and B to cycle forward or backwards through the modes. That's it!
 
@@ -19,7 +18,7 @@ Your orbit comes with 14 pre-programmed modes.
 The easiest way to change the modes on your orbit is to let the orbit generate new modes for you. The Vortex knows color theory
 and will generate a matching color preset and pick a random pattern for you.
 
-To enter randomizer mode, go to a mode you wish to change, and then press and hold A until you see white lights then release.
+To enter randomizer mode, go to a mode you wish to change, and then press and hold A until you see white lights, then release.
 You're now in randomizer mode. The orbit will generate a random pattern for you every 8 seconds. Once you get a mode you like, press A to save it into the current mode.
 Press B to exit randomizer mode without saving.
 
@@ -28,7 +27,7 @@ Press B to exit randomizer mode without saving.
 Each mode is defined by a set of up to 8 colors, and a pattern for those colors.
 
 ### Selecting the colors
-To modify the colors, navigate to the mode you want to update, then press and hold A until you see yellow lights then release.
+To modify the colors, navigate to the mode you want to update, then press and hold A until you see yellow lights, then release.
 From here, you will see the current colors displayed on the orbit. 
 Press A (next) and B (previous) to navigate to the color you want to change, then press and hold A to enter color selection for that color.
 From here, press A and B to pick the color range you want, then press and hold A to select.
