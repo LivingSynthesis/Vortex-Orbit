@@ -19,7 +19,7 @@
 #define CLOCK_PIN 3
 
 #define totalModes 14 // How many modes the vortex cycles through
-#define totalPatterns 21 // How many possible patterns there are
+#define totalPatterns 22 // How many possible patterns there are
 
 //Objects
 //---------------------------------------------------------
@@ -624,6 +624,25 @@ void patterns(int pat) {
 
         break;
       }
+   
+    case 21: { // Dash dops (first color dash, rest of the colors dops)
+       if (on) {
+        getColor(currentColor);
+        setLeds(0, 27);
+        if (currentColor == 0) duration = 20; 
+        else duration = 1;
+      }
+      if (!on) {
+        clearAll();
+        duration = 2;
+      }
+      if (mainClock - prevTime > duration) {
+        if (!on)nextColor(0);
+        on = !on;
+        prevTime = mainClock;
+      }
+      break;
+    }
 
     default: { // All Ribbon - executed if pat == 0 or out-of-range
         if (mainClock - prevTime > 10) {
