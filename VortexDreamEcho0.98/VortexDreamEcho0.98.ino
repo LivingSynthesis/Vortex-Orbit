@@ -19,7 +19,7 @@
 #define CLOCK_PIN 3
 
 #define totalModes 14 // How many modes the vortex cycles through
-#define totalPatterns 22 // How many possible patterns there are
+#define totalPatterns 21 // How many possible patterns there are
 
 //Objects
 //---------------------------------------------------------
@@ -93,6 +93,7 @@ int menuSection, brightVal = 2, prevBrightness = 20;
 
 // Demo mode keeps rolling randomized colors until user confirms or cancels
 int demoSpeed = 0;
+int newDemoSpeed = 0;
 bool demoMode = false;
 unsigned long demoTime;
 
@@ -207,7 +208,7 @@ void patterns(int pat) {
 
     case 3: { // Vortex
         getColor(currentColor);
-        if (mainClock - prevTime > 50) {
+        if (mainClock - prevTime > 3) {
           clearAll();
           for (int side = 0; side < 4; side++) {
             if (frame <= 3) {
@@ -229,7 +230,7 @@ void patterns(int pat) {
 
     case 4: { // Dot Zip
         getColor(currentColor);
-        if (mainClock - prevTime > 5) {
+        if (mainClock - prevTime > 1) {
           clearAll();
           qBand++;
           if (qBand > 6) qBand = 0;
@@ -245,7 +246,7 @@ void patterns(int pat) {
 
     case 5: { // Cross strobe
         getColor(currentColor);
-        if (mainClock - prevTime > 50) {
+        if (mainClock - prevTime > 3) {
           clearAll();
           for (int s = 0; s < 7; s++) {
             if (on) {
@@ -332,7 +333,7 @@ void patterns(int pat) {
 
     case 10: { // Meteor
         for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(30);
-        if (mainClock - prevTime > 10) {
+        if (mainClock - prevTime > 4) {
           getColor(currentColor);
           setLed(random(0, 7));
           setLed(random(0, 7));
@@ -350,7 +351,7 @@ void patterns(int pat) {
       }
 
     case 11: { //Carnival Chroma
-        if (mainClock - prevTime > 200) {
+        if (mainClock - prevTime > 20) {
           for (int i = 0; i < NUM_LEDS; i++) {
             if (i % 2 == 0) {
               getColor(currentColor);
@@ -373,18 +374,18 @@ void patterns(int pat) {
 
     case 12: { // Vortex Wipe
         getColor(currentColor);
-        if (mainClock - prevTime > 50) {
+        if (mainClock - prevTime > 4) {
           for (int side = 0; side < 4; side++) {
             if (frame <= 3) {
               setLed(3 + (7 * side) + frame);
               setLed(3 + (7 * side) - frame);
             }
             if (frame >= 4) {
-              setLed(3 + (7 * side) + (6 - (frame - 1)));
-              setLed(3 + (7 * side) - (6 - (frame - 1)));
+              clearLight(3 + (7 * side) + (frame - 4));
+              clearLight(3 + (7 * side) - (frame - 4));
             }
           }
-          if (frame == 3 || frame == 7) nextColor (0);
+          if (frame == 7) nextColor (0);
           frame++;
           if (frame > 7) {
             frame = 0;
@@ -399,18 +400,16 @@ void patterns(int pat) {
         getColor(0);
         setLeds(0, 27);
         getColor(currentColor);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 25; i++) {
           int chunk = i + k;
           if (chunk > 27) chunk -= 28;
           setLed(chunk);
         }
-        if (mainClock - prevTime > 15) {
-          if (currentColor == totalColors - 1) k++;
+        if (mainClock - prevTime > 1) {
+          k++;
           prevTime = mainClock;
-          if (k > 27) k = 0;
-          nextColor(1);
+          if (k > 27) k = 0, nextColor(1);
         }
-
         break;
       }
 
@@ -434,7 +433,7 @@ void patterns(int pat) {
       }
 
     case 15: { // Warp Wipe
-        if (mainClock - prevTime > 35) {
+        if (mainClock - prevTime > 5) {
           getColor(currentColor);
           setLed(dot);
           dot++;
@@ -452,15 +451,21 @@ void patterns(int pat) {
         getColor(0);
         setLeds(0, 27);
         getColor(currentColor);
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
           int chunk = i + k;
           if (chunk > 27) chunk -= 28;
           setLed(chunk);
-          int otherChunk = i + k + 14;
+          int otherChunk = i + k + 7;
           if (otherChunk > 27) otherChunk -= 28;
           setLed(otherChunk);
+          int otherChunk1 = i + k + 14;
+          if (otherChunk1 > 27) otherChunk1 -= 28;
+          setLed(otherChunk1);
+          int otherChunk2 = i + k + 21;
+          if (otherChunk2 > 27) otherChunk2 -= 28;
+          setLed(otherChunk2);
         }
-        if (mainClock - prevTime > 5) {
+        if (mainClock - prevTime > 1) {
           if (currentColor == totalColors - 1) k++;
           prevTime = mainClock;
           if (k > 27) k = 0;
@@ -472,10 +477,10 @@ void patterns(int pat) {
 
     case 17: { //Warp Fade
         if (mainClock - prevTime2 > 1) {
-          for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(7);
+          for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(20);
           prevTime2 = mainClock;
         }
-        if (mainClock - prevTime > 5) {
+        if (mainClock - prevTime > 1) {
           getColor(currentColor);
           setLed(dot);
           dot++;
@@ -491,10 +496,10 @@ void patterns(int pat) {
 
     case 18: { // Double fade
         if (mainClock - prevTime2 > 1) {
-          for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(1);
+          for (int a = 0; a < NUM_LEDS; a++)leds[a].fadeToBlackBy(16);
           prevTime2 = mainClock;
         }
-        if (mainClock - prevTime > 35) {
+        if (mainClock - prevTime > 4) {
           getColor(currentColor);
           setLed(dot);
           dot++;
@@ -511,7 +516,7 @@ void patterns(int pat) {
         break;
       }
 
-    case 19: { //Bonus 1
+    case 19: { ///Chroma rezz
         int pos;
         if (!on) {
           if (rep == 0) pos = 3;//1
@@ -551,7 +556,7 @@ void patterns(int pat) {
           if (mode[m].numColors == 1) val = 0;
           if (rep == 1) pos = 3;
           if (rep == 0) pos = 2;
-          duration = 1;
+          duration = 100;
           for (int side = 0; side < 4; side++) {
             setLed(3 + (7 * side) + pos);
             setLed(3 + (7 * side) - pos);
@@ -559,9 +564,9 @@ void patterns(int pat) {
             setLed(3 + (7 * side) - (pos - 2));
           }
         }
-        if (!on2) duration = 10;
+        if (!on2) duration = 100;
         if (mainClock - prevTime2 > duration) {
-          if (!on)nextColor1(1);
+          if (!on2)nextColor1(1);
           on2 = !on2;
           prevTime2 = mainClock;
         }
@@ -574,7 +579,7 @@ void patterns(int pat) {
         break;
       }
 
-    case 20: { // Bonus 2
+    case 20: { // Backstrobe
         int pos;
         if (!on3) {
           getColor(mode[m].currentColor);
@@ -597,13 +602,13 @@ void patterns(int pat) {
             clearLight(3 + (7 * side) - (pos - 2));
           }
         }
-        if (mainClock - prevTime3 > 100) {
+        if (mainClock - prevTime3 > 20) {
           on3 = !on3;
           if (!on3) nextColor(0);
           prevTime3 = mainClock;
         }
 
-        if (mainClock - prevTime > 5) {
+        if (mainClock - prevTime > 1) {
           getColor(mode[m].currentColor1);
           if (rep == 0) pos = 2;
           if (rep == 1) pos = 3;
@@ -624,25 +629,6 @@ void patterns(int pat) {
 
         break;
       }
-   
-    case 21: { // Dash dops (first color dash, rest of the colors dops)
-       if (on) {
-        getColor(currentColor);
-        setLeds(0, 27);
-        if (currentColor == 0) duration = 20; 
-        else duration = 1;
-      }
-      if (!on) {
-        clearAll();
-        duration = 2;
-      }
-      if (mainClock - prevTime > duration) {
-        if (!on)nextColor(0);
-        on = !on;
-        prevTime = mainClock;
-      }
-      break;
-    }
 
     default: { // All Ribbon - executed if pat == 0 or out-of-range
         if (mainClock - prevTime > 10) {
@@ -657,7 +643,7 @@ void patterns(int pat) {
 
 // Randomize colors and pattern every so often
 void runDemo() {
-  int demoInterval;
+  int demoInterval = 0;
   if (demoSpeed == 0) demoInterval = 3000;
   if (demoSpeed == 1) demoInterval = 5000;
   if (demoSpeed == 2) demoInterval = 8000;
@@ -836,6 +822,8 @@ void rollColors() {
       mode[m].sat[r] = 255;
       mode[m].val[r] = random(1, 4) * 85;
     }
+    bool reroll = random(0,2);
+    if (reroll == 1) rollColors();
   }
   if (type == 9) { // Solid
     mode[m].numColors = 1;
@@ -843,36 +831,41 @@ void rollColors() {
     mode[m].sat[0] = random(0, 4) * 85;
     mode[m].val[0] = random(1, 4) * 85;
   }
+  if (mode[m].patternNum == 6 && mode[m].numColors < 3) rollColors();
 
-  int blank = random(0, 3); // randomly chooses to add blanks to colorset
+  int blank = random(0, 4); // randomly chooses to add blanks to colorset
   if (blank == 0) {
-    if (mode[m].patternNum == 1 || mode[m].patternNum == 2 || mode[m].patternNum == 8 || mode[m].patternNum == 13 || mode[m].patternNum == 16) {
-      if (mode[m].numColors < 8) { // Blank at beginning
-        mode[m].hue[mode[m].numColors] = mode[m].hue[0];
-        mode[m].sat[mode[m].numColors] = mode[m].sat[0];
-        mode[m].val[mode[m].numColors] = mode[m].val[0];
-        mode[m].numColors += 1;
-        mode[m].val[0] = 0;
+    int blankType = 0;
+    if (mode[m].numColors == 8) mode[m].val[0] = random(1, 2) * 85;// Dim first color
+    if (mode[m].numColors >= 1 && mode[m].numColors <= 7) blankType = 1;
+    if (mode[m].numColors >= 2 && mode[m].numColors <= 6) blankType = random (1, 3);
+    if (mode[m].numColors >= 3 && mode[m].numColors <= 5) blankType = random (1, 3);
+    if (mode[m].patternNum == 6) blankType = 0;
+
+    if (blankType == 1) { // Blank at beginning
+      for (int c = 0; c < mode[m].numColors; c++) {
+        mode[m].hue[mode[m].numColors - c] = mode[m].hue[mode[m].numColors - (1 + c)];
+        mode[m].sat[mode[m].numColors - c] = mode[m].sat[mode[m].numColors - (1 + c)];
+        mode[m].val[mode[m].numColors - c] = mode[m].val[mode[m].numColors - (1 + c)];
       }
-      else mode[m].val[0] = random(1, 3) * 85;
+      mode[m].val[0] = 0;
+      mode[m].numColors += 1;
     }
-    bool blankType = random (0, 3);
-    if (mode[m].numColors < 8) {
-      if (blankType == 0) { // Blank at end
-        mode[m].val[mode[m].numColors] = 0;
-        mode[m].numColors += 1;
+    if (blankType == 2) { // Blank at middle and beginning
+      for (int c = 0; c < (mode[m].numColors / 2 + 1 ); c++) {
+        mode[m].hue[mode[m].numColors - c] = mode[m].hue[mode[m].numColors - (1 + c)];
+        mode[m].sat[mode[m].numColors - c] = mode[m].sat[mode[m].numColors - (1 + c)];
+        mode[m].val[mode[m].numColors - c] = mode[m].val[mode[m].numColors - (1 + c)];
       }
-      if (mode[m].numColors >= 1 && mode[m].numColors < 7) {
-        if (blankType == 1) { // 2 blanks
-          int mid = mode[m].numColors / 2;
-          mode[m].hue[mode[m].numColors] = mode[m].hue[mid];
-          mode[m].sat[mode[m].numColors] = mode[m].sat[mid];
-          mode[m].val[mode[m].numColors] = mode[m].val[mid];
-          mode[m].val[mid] = 0;
-          mode[m].val[mode[m].numColors + 1] = 0;
-          mode[m].numColors += 2;
-        }
+      mode[m].val[mode[m].numColors / 2] = 0;
+      mode[m].numColors += 1;
+      for (int c = 0; c < mode[m].numColors; c++) {
+        mode[m].hue[mode[m].numColors - c] = mode[m].hue[mode[m].numColors - (1 + c)];
+        mode[m].sat[mode[m].numColors - c] = mode[m].sat[mode[m].numColors - (1 + c)];
+        mode[m].val[mode[m].numColors - c] = mode[m].val[mode[m].numColors - (1 + c)];
       }
+      mode[m].val[0] = 0;
+      mode[m].numColors += 1;
     }
   }
 }
@@ -1053,19 +1046,19 @@ void chooseDemoSpeed() {
   clearAll();
   if (on) {
     for (int q = 0; q < 4; q++) {
-      if (demoSpeed == 0) {
+      if (newDemoSpeed == 0) {
         leds[7 * (q) + 0].setHSV(190, 255, 255);
         leds[7 * (q) + 6].setHSV(190, 255, 255);
       }
-      if (demoSpeed == 1) {
+      if (newDemoSpeed == 1) {
         leds[7 * (q) + 1].setHSV(190, 255, 255);
         leds[7 * (q) + 5].setHSV(190, 255, 255);
       }
-      if (demoSpeed == 2) {
+      if (newDemoSpeed == 2) {
         leds[7 * (q) + 2].setHSV(190, 255, 255);
         leds[7 * (q) + 4].setHSV(190, 255, 255);
       }
-      if (demoSpeed == 3) {
+      if (newDemoSpeed == 3) {
         leds[7 * (q) + 3].setHSV(190, 255, 255);
       }
     }
@@ -1164,7 +1157,7 @@ void checkButton() {
       //---------------------------------------Button Down-----------------------------------------------------
       if (button[b].buttonState == LOW && button[b].holdTime > button[b].prevHoldTime) {
         if (b == 0) {
-          if (button[b].holdTime > 1000 && button[b].holdTime <= 2000 && menu == 0) mode[m].menuNum = 1, menuSection = 0;
+          if (button[b].holdTime > 1000 && button[b].holdTime <= 2000 && menu == 0 && !demoMode) mode[m].menuNum = 1, menuSection = 0;
           if (button[b].holdTime > 2000 && button[b].holdTime <= 3000 && menuSection == 0) menuSection = 1;
           if (button[b].holdTime > 3000 && button[b].holdTime <= 4000 && menuSection == 1) menuSection = 2;
           if (button[b].holdTime > 4000 && button[b].holdTime <= 5000 && menuSection == 2) menuSection = 3;
@@ -1181,15 +1174,15 @@ void checkButton() {
       if (button[b].buttonState == HIGH && button[b].lastButtonState == LOW && millis() - button[b].prevPressTime > 150) {
         if (menu == 0 && !demoMode) {
           if (button[b].holdTime <= 300) {
-            if (b == 0) m++, frame = 0, gap = 0, mode[m].currentColor = 0; //, throwMode();
-            if (b == 1) m--, frame = 0, gap = 0, mode[m].currentColor = 0;
+            if (b == 0) m++, frame = 0, gap = 0; //, throwMode();
+            if (b == 1) m--, frame = 0, gap = 0;
           }
           if (button[b].holdTime > 300 && Serial) exportSettings();
         }
         // press in demo mode
         if (menu == 0 && demoMode) {
           if (button[b].holdTime <= 3000) {
-            if (b == 0) saveAll();
+            if (b == 0) saveAll(), frame = 0, mode[m].currentColor = 0;
             if (b == 1) tempLoad(), frame = 0, mode[m].currentColor = 0;
             mode[m].menuNum = 9;
             demoMode = false;
@@ -1221,7 +1214,7 @@ void checkButton() {
             }
           }
           if (button[b].holdTime > 2000 && button[b].holdTime <= 3000) {
-            if (b == 1) mode[m].menuNum = 7;
+            if (b == 1) mode[m].menuNum = 7; newDemoSpeed = demoSpeed;
           }
           if (button[b].holdTime > 3000) {
             if (b == 1) mode[m].menuNum = 8;
@@ -1299,11 +1292,11 @@ void checkButton() {
         }
         if (menu == 7) {
           if (button[b].holdTime <= 300) {
-            if (b == 0) demoSpeed++;
-            if (b == 1) demoSpeed--;
+            if (b == 0) newDemoSpeed++;
+            if (b == 1) newDemoSpeed--;
           }
           if (button[b].holdTime > 300 && button[b].holdTime < 3000) {
-            if (b == 0) saveAll();
+            if (b == 0) demoSpeed = newDemoSpeed; demoTime = mainClock; saveAll();
             mode[m].menuNum = 9;
           }
         }
@@ -1327,8 +1320,8 @@ void checkButton() {
     }
 
     //these are the max and minimum values for each variable.
-    if (demoSpeed > 3) demoSpeed = 0;
-    if (demoSpeed < 0) demoSpeed = 3;
+    if (newDemoSpeed > 3) newDemoSpeed = 0;
+    if (newDemoSpeed < 0) newDemoSpeed = 3;
     if (brightVal > 3) brightVal = 0;
     if (brightVal < 0) brightVal = 3;
     if (patNum > totalPatterns - 1) patNum = 0;
