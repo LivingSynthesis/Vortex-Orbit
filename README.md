@@ -1,5 +1,6 @@
 # The Vortex
-This is the Vortex Dream Code, it is the framework for controlling the colors and flash patterns on the Vortex, feel free to use or modify it!
+This is the software for the Vortex, it is the framework for controlling the colors and flash patterns, feel free to use or modify it!
+Available here! https://stoneorbits.com/
 
 # User Guide
 
