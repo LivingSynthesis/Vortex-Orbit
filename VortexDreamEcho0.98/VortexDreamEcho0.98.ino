@@ -1081,7 +1081,7 @@ void chooseDemoSpeed() {
       }
     }
   }
-  blinkTarget(100 * demoSpeed + 100);
+  blinkTarget(100 * newDemoSpeed + 100);
 }
 
 void restoreDefaults() {
