@@ -1,6 +1,6 @@
 # The Vortex
-This is the software for the Vortex, it is the framework for controlling the colors and flash patterns, feel free to use or modify it!
-Available here! https://stoneorbits.com/
+This software is the framework for controlling the colors and flash patterns on the Vortex, feel free to use or modify it!
+The Vortex is Available here! https://stoneorbits.com/
 
 # User Guide
 
