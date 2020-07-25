@@ -208,7 +208,7 @@ void patterns(int pat) {
 
     case 3: { // Vortex
         getColor(currentColor);
-        if (mainClock - prevTime > 3) {
+        if (mainClock - prevTime > 5) {
           clearAll();
           for (int side = 0; side < 4; side++) {
             if (frame <= 3) {
@@ -516,7 +516,7 @@ void patterns(int pat) {
         break;
       }
 
-    case 19: { ///Chroma rezz
+    case 19: { ///Chroma Sizzle
         int pos;
         if (!on) {
           if (rep == 0) pos = 3;//1
@@ -662,9 +662,9 @@ void patterns(int pat) {
 // Randomize colors and pattern every so often
 void runDemo() {
   int demoInterval = 0;
-  if (demoSpeed == 0) demoInterval = 3000;
-  if (demoSpeed == 1) demoInterval = 5000;
-  if (demoSpeed == 2) demoInterval = 8000;
+  if (demoSpeed == 0) demoInterval = 600;
+  if (demoSpeed == 1) demoInterval = 6000;
+  if (demoSpeed == 2) demoInterval = 10000;
   if (demoSpeed == 3) demoInterval = 16000;
 
   if (mainClock - demoTime > demoInterval) {
@@ -835,19 +835,24 @@ void rollColors() {
   }
   if (type == 8) { // full rainbow
     mode[m].numColors = 8;
+    int shift = random(0, 7);
     for (int r = 0; r < 8; r++) {
-      mode[m].hue[r] = r * 32;
-      mode[m].sat[r] = 255;
-      mode[m].val[r] = random(1, 4) * 85;
+      int rshift = r + shift;
+      if (rshift >= 8) rshift -= 8;
+      mode[m].hue[rshift] = r * 32;
+      mode[m].sat[rshift] = 255;
+      mode[m].val[rshift] = random(1, 4) * 85;
     }
-    bool reroll = random(0, 2);
-    if (reroll == 1) rollColors();
+    int reroll = random(0, 3);
+    if (reroll == 2) rollColors();
   }
   if (type == 9) { // Solid
     mode[m].numColors = 1;
     mode[m].hue[0] = random(0, 16) * 16;
     mode[m].sat[0] = random(0, 4) * 85;
     mode[m].val[0] = random(1, 4) * 85;
+    int reroll = random(0, 2);
+    if (reroll == 1) rollColors();
   }
   if (mode[m].patternNum == 6 && mode[m].numColors < 3) rollColors();
 
@@ -1182,13 +1187,13 @@ void checkButton() {
           if (button[b].holdTime > 5000 && menuSection == 3) mode[m].menuNum = 5;
         }
         if (b == 1) {
-          if (button[b].holdTime > 1000 && button[b].holdTime <= 2000 && menu == 0) mode[m].menuNum = 2, menuSection = 0;
+          if (button[b].holdTime > 1000 && button[b].holdTime <= 2000 && menu == 0 && !demoMode) mode[m].menuNum = 2, menuSection = 0;
           if (button[b].holdTime > 2000 && button[b].holdTime <= 3000 && menuSection == 0) menuSection = 1;
           if (button[b].holdTime > 3000 && button[b].holdTime <= 4000 && menuSection == 1) menuSection = 2;
           if (button[b].holdTime > 4000 && menuSection == 2) mode[m].menuNum = 8;
         }
-      }//======================================================================================================
-      // ---------------------------------------Button Up------------------------------------------------------
+      }//------------------------------------------------------------------------------------------------------
+      //========================================Button Up======================================================
       if (button[b].buttonState == HIGH && button[b].lastButtonState == LOW && millis() - button[b].prevPressTime > 150) {
         if (menu == 0 && !demoMode) {
           if (button[b].holdTime <= 300) {
@@ -1438,8 +1443,9 @@ void shareMode() {
     on = !on;
     prevTime = mainClock;
   }
-  if (mainClock - prevTime2 > 500) {
+  if (mainClock - prevTime2 > 1000) {
     unsigned long shareBit;
+    unsigned long sb1, sb2;
     for (int s = 0; s < 8; s++) {
       Serial.print(mode[m].hue[s]);
       Serial.print(" ");
@@ -1456,7 +1462,8 @@ void shareMode() {
     /*mode[m].hue[0]*/
     //Serial.println(shareBit);
     Serial.println(shareBit, HEX);
-    mySender.send(NEC, shareBit, 0);
+
+    sb1 = shareBit;
     int sendSat[8];
     int sendVal[8];
     for (int n = 0; n < 8; n++) {
@@ -1482,13 +1489,16 @@ void shareMode() {
                ((unsigned long)((sendVal[2] * 0x4) + sendVal[3]) * (unsigned long)0x10) +
                (unsigned long)2;
     Serial.println(shareBit, HEX);
-    mySender.send(NEC, shareBit, 0);
+    sb2 = shareBit;
+
     shareBit = ((unsigned long)((sendVal[4] * 0x4) + sendVal[5]) * (unsigned long)0x10000000) +
                ((unsigned long)((sendVal[6] * 0x4) + sendVal[7]) * (unsigned long)0x1000000) +
                ((unsigned long)mode[m].patternNum * (unsigned long)0x10000) +
                ((unsigned long)mode[m].numColors * (unsigned long)0x1000) +
                (unsigned long)3;
     Serial.println(shareBit, HEX);
+    mySender.send(NEC, sb1, 0);
+    mySender.send(NEC, sb2, 0);
     mySender.send(NEC, shareBit, 0);
     prevTime2 = mainClock;
   }
@@ -1570,6 +1580,7 @@ void receiveMode() {
     received1 = false;
     received2 = false;
     received3 = false;
+    mode[m].currentColor = 0;
     mode[m].menuNum = 0;
     saveAll();
   }
@@ -1751,19 +1762,20 @@ void importMode(char input[]) {
 
 void setDefaults() {
   brightness = 20;
-  demoSpeed = 1;
-  importMode("0, 8, 8, 0, 255, 170, 32, 255, 170, 64, 255, 170, 96, 255, 170, 128, 255, 170, 160, 255, 170, 192, 255, 170, 224, 255, 170");
-  importMode("1, 6, 3, 0, 255, 170, 160, 255, 170, 224, 255, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
-  importMode("2, 2, 5, 0, 0, 0, 0, 0, 120, 64, 255, 120, 160, 255, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
-  importMode("3, 3, 2, 224, 255, 170, 192, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
-  importMode("4, 9, 3, 0, 255, 170, 96, 255, 170, 160, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  demoSpeed = 2;
+  importMode("0, 13, 8, 0, 255, 170, 32, 255, 170, 64, 255, 170, 96, 255, 170, 128, 255, 170, 160, 255, 170, 192, 255, 170, 224, 255, 170");
+  importMode("1, 9, 3, 48, 255, 170, 128, 255, 85, 224, 255, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("2, 19, 2, 96, 255, 170, 224, 255, 85, 64, 255, 120, 160, 255, 120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("3, 16, 3, 16, 255, 255, 128, 255, 85, 160, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("4, 12, 4, 96, 255, 85, 128, 255, 255, 160, 255, 170, 192, 255, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
   importMode("5, 5, 4, 0, 255, 120, 160, 255, 170, 64, 255, 170, 96, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
-  importMode("6, 7, 3, 0, 255, 120, 192, 255, 170, 128, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
-  importMode("7, 1, 3, 16, 255, 170, 96, 255, 255, 192, 255, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
-  importMode("8, 17, 3, 16, 255, 255, 128, 255, 85, 160, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
-  importMode("9, 20, 1, 80, 255, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
-  importMode("10, 4, 8, 0, 255, 85, 32, 255, 170, 64, 255, 255, 96, 255, 85, 128, 255, 85, 160, 255, 85, 192, 255, 170, 224, 255, 85");
+  importMode("6, 21, 7, 32, 255, 85, 80, 85, 85, 32, 0, 255, 48, 170, 255, 96, 0, 255, 80, 0, 85, 208, 0, 255, 0, 0, 0");
+  importMode("7, 20, 4, 16, 255, 85, 96, 255, 170, 192, 255, 255, 0, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("8, 2, 3, 192, 255, 85, 48, 255, 255, 80, 255, 85, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("9, 10, 3, 80, 255, 85, 160, 255, 255, 0, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("10, 2, 5, 240, 170, 0, 240, 255, 85, 240, 255, 255, 128, 255, 170, 128, 255, 255, 160, 255, 85, 192, 255, 170, 224, 255, 85");
   importMode("11, 19, 3, 144, 0, 0, 144, 0, 255, 96, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
-  importMode("12, 2, 4, 192, 255, 85, 240, 255, 255, 64, 255, 85, 144, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+  importMode("12, 1, 4, 112, 255, 85, 160, 255, 170, 240, 255, 255, 64, 255, 170, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
   importMode("13, 8, 5, 16, 255, 0, 144, 255, 0, 16, 255, 85, 144, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
 }
+
